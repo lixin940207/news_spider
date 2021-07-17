@@ -19,17 +19,19 @@ function BaseSchema() {
         articleHref: {type: String, required:true, unique: true, index: true},
         imageHref: {type: String},
         title: {type: String, required: true},
-        // createdAt: {type: Number, default: Date.now.valueOf(),  },
-        // updatedAt: {type: Number, default: Date.now.valueOf(), },
-        originCreatedAt: {type: String},
+        region: {type: String},
+        category: {type: String},
+        publishTime: {type: String},
         ranking: {type: Number},
         summary: {type: String},
+        summary_list: [{title: String}],
         newsType: {type: String, enum: Object.values(NewsTypes)},
         isLive: {type: Boolean, default: false},
-        liveNewsList: {
-            type: [liveSchema]
-        },
+        liveNewsList: [liveSchema],
         content: {type: String},
+        article: articleSchema,
+        isVideo: Boolean,
+        relatedNewsList: [{title: String, article: articleSchema}],
     });
 }
 util.inherits(BaseSchema, Schema);

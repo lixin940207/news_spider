@@ -4,9 +4,6 @@ const mongoose = require('mongoose');
 
 
 const NYTimesSchema = new BaseSchema({
-    region: String,
-    summary_list: [{title: String}],
-    article: articleSchema,
 }, {timestamps: true});
 
 const NYTimesModel = mongoose.model('nytimes_news', NYTimesSchema);
@@ -41,9 +38,6 @@ async function upsertNews(news) {
     }
 }
 
-async function createMany(newsArr) {
-    return await NYTimesModel.insertMany(newsArr);
-}
 
 async function bulkUpsertNews(newsArr) {
     return await NYTimesModel.bulkWrite(newsArr.map(item=>{

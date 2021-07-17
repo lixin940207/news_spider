@@ -1,31 +1,33 @@
 const BaseSchema = require('./base_schema');
 const mongoose = require('mongoose');
-const articleSchema = require("./article_schema");
 
 
-const LeMondeSchema = new BaseSchema({}, {timestamps: true});
-
-const LeMondeModel = mongoose.model('lemonde_news', LeMondeSchema);
+const NewsModel = mongoose.model('news', new BaseSchema(
+    {
+        platform: {type: String, required: true}
+    }, {
+        timestamps: true
+    }));
 
 async function list() {
-    return await LeMondeModel.find({});
+    return await NewsModel.find({});
 }
 
 async function getNewsById(id) {
-    return await LeMondeModel.findById(id);
+    return await NewsModel.findById(id);
 }
 
 async function getNewsByHref(href) {
-    return await LeMondeModel.findOne({articleHref: href});
+    return await NewsModel.findOne({articleHref: href});
 }
 
 async function createNews(news) {
-    return await LeMondeModel.create(news);
+    return await NewsModel.create(news);
 }
 
 async function upsertNews(news) {
-    if (await LeMondeModel.findOne({articleHref: news.articleHref})){
-        return await LeMondeModel.updateOne(
+    if (await NewsModel.findOne({articleHref: news.articleHref})) {
+        return await NewsModel.updateOne(
             {
                 articleHref: news.articleHref
             },
@@ -37,16 +39,16 @@ async function upsertNews(news) {
                 new: true
             });
     } else {
-        return await LeMondeModel.create(news);
+        return await NewsModel.create(news);
     }
 }
 
 async function bulkUpsertNews(newsArr) {
-    return await LeMondeModel.bulkWrite(newsArr.map(item=>{
+    return await NewsModel.bulkWrite(newsArr.map(item=>{
         return {
             updateOne:{
                 filter: {articleHref: item.articleHref},
-                update: {$set: item},
+                update: item,
                 upsert: true,
             }
         }
@@ -59,6 +61,5 @@ module.exports = {
     getNewsByHref,
     createNews,
     upsertNews,
-    bulkUpsertNews,
+    bulkUpsertNews
 }
-

@@ -5,6 +5,7 @@ const NewsTypes = Object.freeze({
     CardWithList: 'CardWithList',
     CardWithLive: 'CardWithLive',
     CardWithTitle: 'CardWithTitle',
+    CardWithTitleWide: 'CardWithTitleWide',
     CardWithTitleIntro: 'CardWithTitleIntro',
     CardWithImageAndLiveAndSubtitle: 'CardWithImageAndLiveAndSubtitle',
 });

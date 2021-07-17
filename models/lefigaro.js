@@ -1,15 +1,8 @@
 const BaseSchema = require('./base_schema');
 const mongoose = require('mongoose');
-const articleSchema = require("./article_schema");
 
 
-const LeFigaroSchema = new BaseSchema({
-    category: String,
-    relatedNewsList: [{
-        relatedTitle: String,
-        relatedHref: String}],
-    article: articleSchema,
-}, {timestamps: true});
+const LeFigaroSchema = new BaseSchema({}, {timestamps: true});
 
 const LeFigaroModel = mongoose.model('lefigaro_news', LeFigaroSchema);
 
@@ -47,6 +40,17 @@ async function upsertNews(news) {
     }
 }
 
+async function bulkUpsertNews(newsArr) {
+    return await LeFigaroModel.bulkWrite(newsArr.map(item=>{
+        return {
+            updateOne:{
+                filter: {articleHref: item.articleHref},
+                update: item,
+                upsert: true,
+            }
+        }
+    }));
+}
 
 
 module.exports = {
@@ -55,5 +59,6 @@ module.exports = {
     getNewsByHref,
     createNews,
     upsertNews,
+    bulkUpsertNews,
 }
 

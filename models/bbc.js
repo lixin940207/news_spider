@@ -1,15 +1,12 @@
 const BaseSchema = require('./base_schema');
 const mongoose = require('mongoose');
 
-const BBCSchema = new BaseSchema({
-    region: String,
-    isVideo: Boolean,
-    relatedNewsList: [{
-        relatedTitle: String,
-        relatedHref: String
-    }],
-}, {timestamps: true});
+const BBCSchema = new BaseSchema({}, {
+    timestamps: true
+});
+
 const BBCModel = mongoose.model('bbc_news', BBCSchema);
+
 
 async function list() {
     return await BBCModel.find({});
