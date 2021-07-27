@@ -48,7 +48,7 @@ async function bulkUpsertNews(newsArr) {
         return {
             updateOne:{
                 filter: {articleHref: item.articleHref},
-                update: item,
+                update: {$set: item},
                 upsert: true,
             }
         }

@@ -1,5 +1,6 @@
 const NewsTypes = Object.freeze({
     CardWithImage: 'CardWithImage',
+    CardWithImageAndSummary: 'CardWithImageAndSummary',
     CardWithImageAndLive: 'CardWithImageAndLive',
     CardWithImageAndSubtitle: 'CardWithImageAndSubtitle',
     CardWithList: 'CardWithList',

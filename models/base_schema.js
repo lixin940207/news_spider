@@ -2,11 +2,32 @@ const NewsTypes = require("../models/news_type_enum");
 
 const util = require('util');
 const mongoose = require('mongoose');
-const articleSchema = require("./article_schema");
 const Schema = mongoose.Schema;//规定表里面的字段的规范
 
+
+const textSchema = new Schema({
+    cn:String,
+    ori:String
+})
+
+const blockSchema = new Schema({
+    type: String,
+    src: String,
+    ori:Object,
+    cn:Object
+})
+
+const articleSchema = new Schema({
+    title: textSchema,
+    summary: textSchema,
+    articleHref: String,
+    headImageHref: String,
+    publishTime: Date,
+    bodyBlockList: [blockSchema],
+})
+
 const liveSchema = new Schema({
-    liveTitle: String,
+    liveTitle: textSchema,
     liveTime: String,
     liveHref: String,
     liveContent: articleSchema,
@@ -18,20 +39,21 @@ function BaseSchema() {
     this.add({
         articleHref: {type: String, required:true, unique: true, index: true},
         imageHref: {type: String},
-        title: {type: String, required: true},
+        title: textSchema,
         region: {type: String},
-        category: {type: String},
-        publishTime: {type: String},
+        categories: [String],
+        publishTime: {type: Date},
         ranking: {type: Number},
-        summary: {type: String},
-        summary_list: [{title: String}],
+        displayOrder:{type: Number, index:true},
+        summary: textSchema,
         newsType: {type: String, enum: Object.values(NewsTypes)},
         isLive: {type: Boolean, default: false},
         liveNewsList: [liveSchema],
-        content: {type: String},
         article: articleSchema,
         isVideo: Boolean,
-        relatedNewsList: [{title: String, article: articleSchema}],
+        relatedNewsList: [{
+            title: textSchema,
+            article: articleSchema}],
     });
 }
 util.inherits(BaseSchema, Schema);
