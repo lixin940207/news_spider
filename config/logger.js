@@ -27,7 +27,13 @@ const logger = winston.createLogger({
 
 if (process.env.NODE_ENV !== 'production') {
     logger.add(new Console({
-        format: winston.format.splat(),
+        // format: winston.format.splat(),
+        name: 'base_logger',
+        prepend: false,
+        datePattern: 'yyyy-MM-dd',
+        level: 'info',
+        label: module.filename,
+
     }));
 }
 

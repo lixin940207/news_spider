@@ -1,12 +1,5 @@
-const axios = require('axios');
 const categories = require('./categories');
-const {Translate} = require('@google-cloud/translate').v2;
-const {TRANSLATION_API, API_KEY} = require("../../config/config");
-
-const translate = new Translate({
-    projectId: "stellar-acre-320617",
-    keyFilename: "./config/stellar-acre-320617-59ecbb8ce446.json"});
-
+const {pushToQueueAndWaitForTranslateRes} = require("./translations");
 
 async function ifSelectorExists(element, selector) {
     return (await element.$$(selector)).length > 0;
@@ -74,37 +67,29 @@ function getDisplayOrder(ranking, current_ts) {
     return ranking * 0.01 - current_ts;
 }
 
-async function translateText(q, target='zh-CN') {
-    let [translations] = await translate.translate(q, target);
-    // translations = Array.isArray(translations) ? translations : [translations];
-    // console.log('Translations:');
-    // translations.forEach((translation, i) => {
-    //     console.log(`${q[i]} => (${target}) ${translation}`);
-    // });
-    return translations;
-}
-
-async function getBodyBlockList(element, selectors) {
-    return await element.$$eval(
-        selectors,
-        nodes => nodes.map(
+async function getBodyBlockList(element, selectors, translate=true) {
+    let blockList = await element.$$eval(selectors,  nodes=> nodes.map(
             n => {
+                console.log(n.outerHTML)
                 if (n.tagName === 'P'){
-                    console.log(n)
-                    console.log(n.outerHTML)
                     return {
                         type: 'p',
-                        ori: n.innerText
+                        ori: n.innerText,
                     }
                 }else if(n.tagName === 'IMG'){
                     return{
                         type: 'img',
-                        src: n.getAttribute('src') || n.getAttribute('srcset')||n.getAttribute('data-srcset'),
+                        src: n.getAttribute('src') || n.getAttribute('srcset') || n.getAttribute('data-srcset'),
                     }
                 }else if(n.tagName === 'UL'){
-                    return {
-                        type: 'ul',
-                        ori: n.getElementsByTagName('li'),
+                    let liList = [];
+                    try{
+                        n.getElementsByTagName('li').forEach((item)=>liList.push(item.innerText))
+                        return {
+                            type: 'ul',
+                            ori: liList,
+                        }
+                    }catch (e) {
                     }
                 }else if(n.tagName === 'H2' || n.tagName === 'H3'){
                     return {
@@ -120,7 +105,7 @@ async function getBodyBlockList(element, selectors) {
                     if (n.getElementsByTagName('figure').length > 0){
                         return {
                             type: 'img',
-                            src: n.getElementsByTagName('img')[0].getAttribute('src')
+                            src: n.getElementsByTagName('img')[0].getAttribute('src').split(/[\s,;]+/)[0],
                         }
                     }else{
                         return {
@@ -132,16 +117,36 @@ async function getBodyBlockList(element, selectors) {
                     return {type: n.tagName, ori: n.outerHTML};
                 }
             }
-        ))
+        ));
+    blockList = blockList.filter(i=>i!==undefined && i!==null);
+    if(translate){
+        blockList = await Promise.all(blockList.map(async i=>{
+            if(i.type!=='img' && i.type !== 'ul'){
+                i.ori = processStr(i.ori);
+                i.cn = await pushToQueueAndWaitForTranslateRes(i.ori);
+            }else if(i.type === 'ul'){
+                i.cn = [];
+                for (let j = 0; j < i.ori.length; j++) {
+                    i.ori[j] = processStr(i.ori[j]);
+                    i.cn.push(await pushToQueueAndWaitForTranslateRes(i.ori[j]));
+                }
+            }
+            return i;
+        }));
+    }
+    return blockList;
 }
 
+function processStr(str) {
+    return str.trim().replace(/(\n)+/, ' - ');
 
+}
 
 module.exports = {
     ifSelectorExists,
     determineCategory,
     getImageHref,
     getDisplayOrder,
-    translateText,
-    getBodyBlockList
+    getBodyBlockList,
+    processStr,
 }

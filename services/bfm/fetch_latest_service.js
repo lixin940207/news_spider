@@ -7,7 +7,8 @@ const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.BFMURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getDisplayOrder} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
@@ -37,8 +38,10 @@ crawl = async () => {
         promises.push(p)
     }
     const allNewsResult = await Promise.all(promises);
-    logger.info('parsing all objects finish.')
-    await News.bulkUpsertNews(allNewsResult.map(element => {
+    const newsResult = allNewsResult.filter(i=>i!==undefined);
+
+    logger.info('BFM parsing all objects finish.')
+    await News.bulkUpsertNews(newsResult.map(element => {
         element.platform = 'BFM';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
@@ -48,35 +51,46 @@ crawl = async () => {
 }
 
 parseNews = async (element, idx) => {
+    if ((await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_externe')){
+        return;
+    }
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.startsWith('/')) news.articleHref = URL + news.articleHref;
     news.imageHref = await getImageHref(element);
     if ((await element.$$('.title_une_item')).length > 0){
-        news.title.ori = await element.$eval('.title_une_item', node=>node.innerText);
+        news.title.ori = processStr(await element.$eval('.title_une_item', node=>node.innerText));
     }else{
-        news.title.ori = await element.$eval('.content_item_title', node => node.innerText);
+        news.title.ori = processStr(await element.$eval('.content_item_title', node => node.innerText));
     }
-    news.title.cn = await translateText(news.title.ori);
     news.categories = determineCategory(news.title.ori);
     news.isLive = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_live');
     news.isVideo = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_video');
-    if (news.isLive) news.title.ori = news.title.ori.split('EN DIRECT - ')[1];
+    if (news.isLive && news.title.ori.startsWith('EN DIRECT - ')) news.title.ori = news.title.ori.split('EN DIRECT - ')[1];
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
 
     news.newsType = NewsTypes.CardWithImage;
     if (news.isLive) {
-        news.liveNewsList = await parseLiveNews(browser, news.articleHref);
+        const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
+        news.liveNewsList = liveNewsList;
+        news.publishTime = latestTime;
         news.newsType = NewsTypes.CardWithImageAndLive;
     } else {
-        news.article = await goToDetailPageAndParse(browser, news.articleHref);
-        news.publishTime = news.article.publishTime
+        const article = await goToDetailPageAndParse(browser, news.articleHref);
+        if(article !== null){
+            news.article = article;
+            news.publishTime = news.article.publishTime
+        }else{
+            return;
+        }
     }
     return news;
 }
 
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl().then(r => {})
 
 
 

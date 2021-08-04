@@ -4,7 +4,8 @@ const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
 const logger = require("../../config/logger");
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref, ifSelectorExists} = require("../utils/util");
 const {CRAWL_TIME_INTERVAL} = require("../../config/config");
@@ -46,14 +47,14 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a.teaser__link', node => node.getAttribute('href'));
-    news.title.ori = await element.$eval('.teaser__title', node => node.innerText);
-    news.title.cn = await translateText(news.title.ori);
+    news.title.ori = processStr(await element.$eval('.teaser__title', node => node.innerText));
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     news.imageHref = await getImageHref(element, 'picture source');
     news.categories = ['China'];
     news.newsType = NewsTypes.CardWithImage;
     if (await ifSelectorExists(element,'.teaser__desc')) {
-        news.summary.ori = await element.$eval('.teaser__desc', node => node.innerText);
-        news.summary.cn = await translateText(news.summary.ori);
+        news.summary.ori = processStr(await element.$eval('.teaser__desc', node => node.innerText));
+        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);

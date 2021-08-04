@@ -6,7 +6,8 @@ const schedule = require("node-schedule");
 const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.NYTimeURL;
 const logger = require('../../config/logger');
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {parseChineseArticle} = require("./common");
 const {parseArticle} = require("./common");
 const {NewsObject} = require("../utils/objects");
@@ -52,10 +53,11 @@ crawl = async () => {
     let newsList = allEligibleLinks.map(async (element, idx) => {
         let href = await element.evaluate(node => node.getAttribute('href'));
         href = href.split('?')[0];
+        if(href.endsWith('/')) href = href.substring(0, href.length - 1);
         const hrefSplit = href.split('/');
         if (hrefSplit[3] === 'interactive' || hrefSplit[4] === 'interactive' || hrefSplit[3] === 'news-event') return 'ok';
 
-        if (!(href in objs)) {
+        if (!(objs.hasOwnProperty(href))) {
             objs[href] = new NewsObject();
             objs[href].articleHref = href;
             objs[href].ranking = idx;
@@ -73,29 +75,29 @@ crawl = async () => {
         }
 
         if (objs[href].title.ori === undefined && ((await element.$$('h3, h2')).length > 0)) {
-            objs[href].title.ori = await element.$eval('h3, h2', node => node.innerText);
-            objs[href].title.cn = await translateText(objs[href].title.ori);
-            objs[href].categories = determineCategory(objs[href].title);
+            objs[href].title.ori = processStr(await element.$eval('h3, h2', node => node.innerText));
+            objs[href].title.cn = await pushToQueueAndWaitForTranslateRes(objs[href].title.ori);
+            objs[href].categories = determineCategory(objs[href].title.ori);
         }
         if (objs[href].summary.ori === undefined && (await element.$$('p')).length > 0) {
-            objs[href].summary.ori = await element.$eval('p', node => node.innerText);
-            objs[href].summary.cn = await translateText(objs[href].summary.ori);
+            objs[href].summary.ori = processStr(await element.$eval('p', node => node.innerText));
+            objs[href].summary.cn = await pushToQueueAndWaitForTranslateRes(objs[href].summary.ori);
         }
         if (objs[href].imageHref === undefined) {
             objs[href].imageHref = await getImageHref(element, 'img');
         }
-        if (objs[href].relatedNewsList.length === 0 && (await element.$$('ul')).length > 0) {
-            objs[href].relatedNewsList = await element.$$eval('li', nodes => nodes.map(
-                async n => {
-                    return {
-                        title: {
-                            ori: n.innerText,
-                            cn: await translateText(n.innerText),
-                        },
-                    }
-                })
-            );
-        }
+        // if (objs[href].relatedNewsList.length === 0 && (await element.$$('ul')).length > 0) {
+        //     objs[href].relatedNewsList = await element.$$eval('li', nodes => nodes.map(
+        //         async n => {
+        //             return {
+        //                 title: {
+        //                     ori: n.innerText,
+        //                     cn: await translateText(n.innerText)
+        //                 },
+        //             }
+        //         })
+        //     );
+        // }
         objs[href].region = hrefSplit[hrefSplit.length - 2];
         objs[href].isLive = hrefSplit[3] === 'live';
         if (objs[href].isLive && objs[href].liveNewsList.length === 0) {
@@ -130,9 +132,8 @@ crawl = async () => {
     await browser.close();
 }
 
-
-
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl().then(r => {})
 
 
 

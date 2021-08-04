@@ -5,6 +5,8 @@ const URL = require('../../config/config').CHINA_NEWS_URLS.LeFigaroURL;
 const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {processStr} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {parseArticle} = require("./common");
@@ -44,7 +46,8 @@ crawl = async () => {
 parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
-    news.title.ori = await element.$eval('[itemprop="name"]', node => node.innerText);
+    news.title.ori = processStr(await element.$eval('[itemprop="name"]', node => node.innerText));
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     news.categories = ['China'];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     news.newsType = NewsTypes.CardWithTitleWide;
@@ -53,7 +56,8 @@ parseNews = async (element, idx) => {
         news.newsType = NewsTypes.CardWithImage;
     }
     if (await ifSelectorExists(element, 'p')){
-        news.summary.ori = await element.$eval('p', node => node.innerText);
+        news.summary.ori = processStr(await element.$eval('p', node => node.innerText));
+        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
         news.newsType = news.imageHref!==undefined?NewsTypes.CardWithImageAndSummary:NewsTypes.CardWithTitleIntro;
     }
     news.article = await parseArticle(browser, news.articleHref);

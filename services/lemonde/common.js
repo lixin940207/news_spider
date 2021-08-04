@@ -1,5 +1,7 @@
 const {ifSelectorExists} = require("../utils/util");
 const moment = require("moment");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 
@@ -14,7 +16,8 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     await pageContent.waitForSelector('main', {timeout: 0});
 
     if (url.split('/')[3] === 'blog'){
-        article.title.ori = await pageContent.$eval('main#main .entry-title', node => node.innerText);
+        article.title.ori = processStr(await pageContent.$eval('main#main .entry-title', node => node.innerText));
+        article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
         article.publishTime = new Date(await pageContent.$eval('time[datetime]', node => node.getAttribute('datetime')));
         article.bodyBlockList = await getBodyBlockList(pageContent,'.entry-content img,' +
             '.entry-content p');
@@ -22,8 +25,10 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     }else {
         let dateHeader;
         if (await ifSelectorExists(pageContent, 'article#Longform')){
-            article.title.ori = await pageContent.$eval('article#Longform .article__heading h1', node => node.innerText);
-            article.summary.ori = await pageContent.$eval('article#Longform .article__heading .article__info .article__desc', node => node.innerText);
+            article.title.ori = processStr(await pageContent.$eval('article#Longform .article__heading h1', node => node.innerText));
+            article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+            article.summary.ori = processStr(await pageContent.$eval('article#Longform .article__heading .article__info .article__desc', node => node.innerText));
+            article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
             dateHeader = await pageContent.$eval('article#Longform .article__heading .meta__publisher', node => node.innerText);
             article.bodyBlockList = await getBodyBlockList(pageContent,
                 'article#longform .article__content [class*="article__paragraph"], ' +
@@ -31,8 +36,10 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
                 'article#longform .article__content blockquote,' +
                 'article#longform .article__content figure img')
         }else{
-            article.title.ori = await pageContent.$eval('header[class*="article__header"] .article__title', node => node.innerText);
-            article.summary.ori = await pageContent.$eval('header[class*="article__header"] .article__desc', node => node.innerText);
+            article.title.ori = processStr(await pageContent.$eval('header[class*="article__header"] .article__title', node => node.innerText));
+            article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+            article.summary.ori = processStr(await pageContent.$eval('header[class*="article__header"] .article__desc', node => node.innerText));
+            article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
             dateHeader = await pageContent.$eval('header[class*="article__header"] span[class*="meta__date"]', node => node.innerText);
 
             article.bodyBlockList = await getBodyBlockList(pageContent,
@@ -68,37 +75,37 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
 }
 
 
-
 module.exports.parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'load', timeout: 0});
     await pageLive.waitForSelector('section[class*="sirius-live"]', {timeout: 0});
     const liveElementList = await pageLive.$$('section#post-container > section.post.post__live-container');
-    return await Promise.all(liveElementList.map(async element => {
+    let liveNewsList =  await Promise.all(liveElementList.map(async element => {
         let liveTitle = '';
-        if ((await element.$$('[class*="post__live-container--title"]')).length > 0) {
-            liveTitle = await element.$eval('[class*="post__live-container--title"]', async node => node.innerText)
+        if (!(await ifSelectorExists(element,'[class*="post__live-container--title"]'))) {
+            return;
         }
-        else if ((await element.$$('blockquote.post__live-container--comment-blockquote')).length > 0) {
-            liveTitle = await element.$eval('blockquote.post__live-container--comment-blockquote', async node => node.innerText)
-        } else if ((await element.$$('.post__live-container--answer-content')).length > 0){
-            liveTitle = await element.$eval('.post__live-container--answer-content', async node => node.innerText)
+        liveTitle = processStr(await element.$eval('[class*="post__live-container--title"]', async node => node.innerText));
+        if(await ifSelectorExists(element, '.header-content__live .flag-live__border__label')){
+            liveTitle = processStr(await element.$eval('.header-content__live .flag-live__border__label', node=>node.innerText)) +' - ' + liveTitle;
         }
         const timeText = await element.$eval('span.date', node => node.innerText);
         let liveTime = new Date();
         liveTime.setHours(Number(timeText.split(':')[0]));
         liveTime.setMinutes(Number(timeText.split(':')[1]));
         return {
-            liveTitle: {ori:liveTitle},
+            liveTitle: {ori: liveTitle, cn:await pushToQueueAndWaitForTranslateRes(liveTitle)},
             liveHref: url,
             liveTime,
             liveContent: {
-                title: {ori: liveTitle},
                 bodyBlockList: await getBodyBlockList(element,'.content--live .post__live-container--answer-content p,' +
                     '.content--live figure.post__live-container--figure img'),
             }
         };
     }));
+    liveNewsList = liveNewsList.filter(i=>i!==undefined);
+    const latestTime = new Date(Math.max.apply(null,liveNewsList.map(i=>i.liveTime)));
+    return {liveNewsList, latestTime}
 }
 
 

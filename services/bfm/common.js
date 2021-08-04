@@ -1,5 +1,7 @@
 const moment = require('moment');
 const logger = require("../../config/logger");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
@@ -10,9 +12,13 @@ goToDetailPageAndParse = async (browser, url) => {
         waitUntil: 'load', timeout: 0
     });
     await pageContent.bringToFront();
+    if(!(await ifSelectorExists(pageContent, '#main_wrapper'))){
+        console.log(url);
+    }
     if((await pageContent.$eval('#main_wrapper',
             node=>node.getAttribute('class'))).includes('video')){
-        return await goToVideoPageAndParse(pageContent, url);
+        // return await goToVideoPageAndParse(pageContent, url);
+        return null;
     }else{
         return await goToArticlePageAndParse(pageContent, url);
     }
@@ -21,9 +27,11 @@ goToDetailPageAndParse = async (browser, url) => {
 goToArticlePageAndParse = async (pageContent) => {
     const article = new ArticleObject();
 
-    article.title.ori = await pageContent.$eval('#contain_title', node => node.innerText);
+    article.title.ori = processStr(await pageContent.$eval('#contain_title', node => node.innerText));
+    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
     if (await ifSelectorExists(pageContent, '.content_body_wrapper .chapo')){
-        article.summary.ori = await pageContent.$eval('.content_body_wrapper .chapo', node => node.innerText);
+        article.summary.ori = processStr(await pageContent.$eval('.content_body_wrapper .chapo', node => node.innerText));
+        article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
     }
     const timeText = await pageContent.$eval('header #signatures_date time', node => node.innerText);
     const date = new Date(moment(timeText.split(' à ')[0], 'DD/MM/YYYY', 'fr'));
@@ -42,9 +50,11 @@ goToArticlePageAndParse = async (pageContent) => {
 goToVideoPageAndParse = async (pageContent) => {
     const article = new ArticleObject();
 
-    article.title.ori = await pageContent.$eval('#contain_title', node => node.innerText);
+    article.title.ori = processStr(await pageContent.$eval('#contain_title', node => node.innerText));
+    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
     if (await ifSelectorExists(pageContent, '#content_description')){
         article.summary.ori = await pageContent.$eval('#content_description', node => node.innerText);
+        article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
     }
     const timeText = await pageContent.$eval('#content_scroll_start time', node => node.innerText);
     const date = new Date(moment(timeText.split(' à ')[0], 'DD/MM/YYYY', 'fr'));
@@ -64,15 +74,21 @@ parseLiveNews = async (browser, url) => {
         logger.error(url + 'has problem!')
     }
     const liveElementList = await pageLive.$$('div.content_live_block[id^="article_"]');
-    return await Promise.all(liveElementList.map(async element => {
+    const liveNewsList = await Promise.all(liveElementList.map(async element => {
         let liveTitle;
         let date;
         if (await ifSelectorExists(element, '.live_block_title')){
-            liveTitle = await element.$eval('.live_block_title', node => node.innerText);
+            liveTitle = processStr(await element.$eval('.live_block_title', node => node.innerText));
             const timeText = await element.$eval('.content_live_datetime time', node=>node.innerText)
-            date = new Date();
-            date.setHours(Number(timeText.split(':')[0]));
-            date.setMinutes(Number(timeText.split(':')[1]));
+            if (timeText.includes(' à ')){
+                date = new Date(moment(timeText.split(' à ')[0], "DD/MM"));
+                date.setHours(Number(timeText.split(' à ')[1].split(':')[0]));
+                date.setMinutes(Number(timeText.split(' à ')[1].split(':')[1]));
+            }else{
+                date = new Date();
+                date.setHours(Number(timeText.split(':')[0]));
+                date.setMinutes(Number(timeText.split(':')[1]));
+            }
         } else if(await ifSelectorExists(element, '.content_post .subheading')){
             liveTitle = await element.$eval('.action_header .action_minutes', node => node.innerText) +
                 (await element.$eval('.content_post .subheading', node=>node.innerText));
@@ -80,15 +96,16 @@ parseLiveNews = async (browser, url) => {
             console.log(url);
         }
         return {
-            liveTitle: {ori: liveTitle},
+            liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
             liveTime: date,
             liveContent: {
-                title: {ori: liveTitle},
                 bodyBlockList: await getBodyBlockList(element,
                     '.content_post p, .content_post blockquote')
             }
         }
     }));
+    const latestTime = new Date(Math.max.apply(null,liveNewsList.map(i=>i.liveTime)));
+    return {liveNewsList, latestTime}
 }
 
 module.exports = {

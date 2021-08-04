@@ -8,7 +8,7 @@ const URL = require('../../config/config').CHINA_NEWS_URLS.BFMURL;
 const BASE_URL = require('../../config/config').ORIGINAL_URLS.BFMURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {translateText} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {goToDetailPageAndParse} = require("./common");
@@ -61,7 +61,7 @@ parseNews = async (element, idx) => {
     if (!determineCategory(news.title.ori).includes('China')){
         return;
     }
-    news.title.cn = await translateText(news.title.ori);
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     news.categories = ['China'];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.startsWith('/')) news.articleHref = BASE_URL + news.articleHref;
@@ -69,11 +69,14 @@ parseNews = async (element, idx) => {
     news.newsType = NewsTypes.CardWithImage;
     if (await ifSelectorExists(element, '[class*="item_chapo"]')){
         news.summary.ori = await element.$eval('[class*="item_chapo"]', node=>node.innerText);
-        news.summary.cn = await translateText(news.summary.ori);
+        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.isVideo = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_video');
     news.article = await goToDetailPageAndParse(browser, news.articleHref);
+    if (news.article === null){
+        return;
+    }
     news.publishTime = news.article.publishTime;
 
     return news;

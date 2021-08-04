@@ -7,7 +7,8 @@ const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {goToArticlePageAndParse} = require("./common");
@@ -52,21 +53,20 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = 'https:' + await element.$eval('a', node => node.getAttribute('href'));
-    news.title.ori = await element.$eval('.story-headline', node => node.innerText);
-    if (!determineCategory(news.title).includes('China')){
+    news.title.ori = processStr(await element.$eval('.story-headline', node => node.innerText));
+    if (!determineCategory(news.title.ori).includes('China')){
         return;
     }
-    news.title.cn = await translateText(news.title.ori);
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     news.categories = ['China'];
     news.imageHref = BASE_URL + await element.$eval('img', node=>node.getAttribute('src'));
     news.newsType = NewsTypes.CardWithImage;
 
     if ((await element.$$('.story-subheadline')).length > 0) {
-        news.summary.ori = await element.$eval('.story-subheadline', node => node.innerText);
-        news.summary.cn = await translateText(news.summary.ori);
+        news.summary.ori = processStr(await element.$eval('.story-subheadline', node => node.innerText));
+        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
-
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
     return news;

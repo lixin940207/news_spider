@@ -6,7 +6,6 @@ const schedule = require("node-schedule");
 const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.NYTimesURL;
 const logger = require('../../config/logger');
-const {translateText} = require("../utils/util");
 const {parseChineseArticle} = require("./common");
 const {NewsObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");

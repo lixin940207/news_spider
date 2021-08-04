@@ -6,7 +6,8 @@ const schedule = require("node-schedule");
 const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.France24URL;
 const logger = require('../../config/logger');
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
 const {determineCategory} = require("../utils/util");
@@ -50,11 +51,11 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
 
-    news.title.ori = await element.$eval('[class*="article__title"]', node => node.innerText);
-    if(!determineCategory(news.title).includes('China')){
+    news.title.ori = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
+    if(!determineCategory(news.title.ori).includes('China')){
         return;
     }
-    news.title.cn = await translateText(news.title.ori);
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
     if ((await element.$$('img[src]')).length > 0) {
         news.imageHref = (await element.$eval('img[src] + noscript', node => node.innerText)).split('"')[1];

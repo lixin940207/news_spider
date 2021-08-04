@@ -7,9 +7,9 @@ const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
-const {getDisplayOrder} = require("../utils/util");
 const {goToArticlePageAndParse} = require("./common");
 const {parseLiveNews} = require("./common");
 const {determineCategory} = require("../utils/util");
@@ -39,11 +39,11 @@ crawl = async () => {
     const allNewsResult = await Promise.all(promises);
     const newsResult = allNewsResult.filter(i=>i!==undefined);
     logger.info('LeParisien parsing all objects finish.')
-    console.log(await News.bulkUpsertNews(newsResult.map(element => {
+    await News.bulkUpsertNews(newsResult.map(element => {
         element.platform = 'LeParisien';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
-    })));
+    }));
     logger.info('LeParisien inserting into db finish.');
     await browser.close();
 }
@@ -56,19 +56,21 @@ parseNews = async (element, idx) => {
         return;
     }
     news.imageHref = URL + await element.$eval('img', node=>node.getAttribute('src'));
-
-    news.title.ori = await element.$eval('.story-headline', node => node.innerText);
-    news.categories = determineCategory(news.title);
+    news.title.ori = processStr(await element.$eval('.story-headline', node => node.innerText));
+    news.categories = determineCategory(news.title.ori);
     news.isLive = news.title.ori.startsWith('DIRECT.');
     if (news.isLive) news.title.ori = news.title.ori.slice(7,);
-    news.title.cn = await translateText(news.title.ori);
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     if ((await element.$$('.story-subheadline')).length > 0) {
-        news.summary.ori = await element.$eval('.story-subheadline', node => node.innerText);
-        news.summary.cn = await translateText(news.summary.ori);
+        news.summary.ori = processStr(await element.$eval('.story-subheadline', node => node.innerText));
+        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
     }
     news.newsType = NewsTypes.CardWithImage;
     if (news.isLive) {
-        [news.liveNewsList, news.article] = await parseLiveNews(browser, news.articleHref);
+        const {liveNewsList, article, latestTime} = await parseLiveNews(browser, news.articleHref);
+        news.liveNewsList = liveNewsList;
+        news.article = article;
+        news.publishTime = latestTime;
         news.newsType = NewsTypes.CardWithImageAndLive;
     } else {
         news.article = await goToArticlePageAndParse(browser, news.articleHref);
@@ -78,7 +80,8 @@ parseNews = async (element, idx) => {
 }
 
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl().then(r => {})
 
 
 

@@ -5,7 +5,8 @@ const URL = require('../../config/config').ORIGINAL_URLS.LeFigaroURL;
 const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
-const {translateText} = require("../utils/util");
+const {processStr} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getDisplayOrder} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
@@ -56,18 +57,20 @@ parseNews = async (element, idx) => {
                 if ((await node.$$('.fig-live-mark')).length > 0) {
                     let articleHref = await node.$eval('a', node => node.getAttribute('href'));
                     let title = await node.$eval('a', node => node.innerText);
+                    const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                     return {
                         ranking:idx,
                         title: {
                             ori: title,
-                            cn: await translateText(title),
+                            cn: await pushToQueueAndWaitForTranslateRes(title),
                         },
                         categories: determineCategory(title),
                         articleHref,
                         // category: articleHref.split('/')[3],
                         isLive: true,
                         newsType: NewsTypes.CardWithLive,
-                        liveNewsList: await parseLiveNews(browser, articleHref),
+                        liveNewsList,
+                        publishTime: latestTime,
                     }
                 }
             }));
@@ -83,7 +86,7 @@ parseNews = async (element, idx) => {
                         return {
                             title: {
                                 ori:title,
-                                cn: await translateText(title),
+                                cn: await pushToQueueAndWaitForTranslateRes(title),
                             },
                             article: await parseArticle(browser, articleHref),
                         }
@@ -100,18 +103,20 @@ parseNews = async (element, idx) => {
                     if ((await node.$$('.fig-live-mark')).length > 0) {
                         let articleHref = await node.$eval('a', node => node.getAttribute('href'));
                         let title = await node.$eval('a', node => node.innerText);
+                        const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                         return {
                             ranking:idx,
                             title: {
                                 ori: title,
-                                cn: await translateText(title),
+                                cn: await pushToQueueAndWaitForTranslateRes(title),
                             },
                             categories: determineCategory(title),
                             articleHref,
                             // category: articleHref.split('/')[3],
                             isLive: true,
                             newsType: NewsTypes.CardWithLive,
-                            liveNewsList: await parseLiveNews(browser, articleHref),
+                            liveNewsList,
+                            publishTime: latestTime,
                         }
                     }
                 }));
@@ -136,13 +141,13 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     news.newsType = NewsTypes.CardWithTitleWide;
     news.isLive = (await element.$$('fig-live-mark')).length > 0
     news.title.ori = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
-    news.title.cn = await translateText(news.title.ori);
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')){
         news.summary.ori = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
-        news.summary.cn = await translateText(news.summary.ori);
+        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
-    news.categories = determineCategory(news.title);
+    news.categories = determineCategory(news.title.ori);
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'));
     let hasImage = false;
     if((await element.$$('img')).length > 0){
@@ -174,22 +179,25 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
 parseProfileOrLiveNews = async (element, idx, isLive) => {
     const news = new NewsObject();
     news.ranking = idx;
+    news.isLive = isLive;
     news.newsType = isLive ? NewsTypes.CardWithLive : NewsTypes.CardWithTitleIntro
 
     if ((await element.$$('[class*="fig-profile__headline"]')).length === 0){
         console.log(await element.evaluate(node=>node.outerHTML))
     }
-    news.title.ori = await element.$eval('[class*="fig-profile__headline"]', node => node.innerText);
-    news.title.cn = await translateText(news.title.ori);
-    news.categories = determineCategory(news.title);
+    news.title.ori = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.categories = determineCategory(news.title.ori);
     news.articleHref = await element.$eval('a.fig-profile__link', node => node.getAttribute('href'));
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
     if(news.imageHref !== undefined)    news.newsType = isLive? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithImage
-    news.summary.ori = await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText);
-    news.summary.cn = await translateText(news.summary.ori);
+    news.summary.ori = processStr(await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText));
+    news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
     if (isLive) {
-        news.liveNewsList = await parseLiveNews(browser, news.articleHref);
+        const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
+        news.liveNewsList = liveNewsList;
+        news.publishTime = latestTime;
     } else {
         news.article = await parseArticle(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
@@ -201,21 +209,22 @@ parseEnsembleLiveNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithImageAndLive;
-    news.title.ori = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
-    news.title.cn = await translateText(news.title.ori);
-    news.categories = determineCategory(news.title);
+    news.title.ori = processStr(await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText));
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.categories = determineCategory(news.title.ori);
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'))
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
-    news.summary.ori = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
-    news.summary.cn = await translateText(news.summary.ori);
+    news.summary.ori = processStr(await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText));
+    news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
     news.isLive = true
-    news.liveNewsList = await parseLiveNews(browser, news.articleHref);
+    const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
+    news.liveNewsList = liveNewsList;
+    news.publishTime = latestTime;
     return news;
 }
 
-
-
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl().then(r => {})
 
 
