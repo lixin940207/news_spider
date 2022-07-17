@@ -79,7 +79,7 @@ async function getBodyBlockList(element, selectors, translate=true) {
                 }else if(n.tagName === 'IMG'){
                     return{
                         type: 'img',
-                        src: n.getAttribute('src') || n.getAttribute('srcset') || n.getAttribute('data-srcset'),
+                        src: (n.getAttribute('srcset') || n.getAttribute('data-srcset') || n.getAttribute('src')).split(/[\s,]+/)[0],
                     }
                 }else if(n.tagName === 'UL'){
                     let liList = [];

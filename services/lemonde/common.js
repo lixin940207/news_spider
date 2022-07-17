@@ -31,10 +31,10 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
             article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
             dateHeader = await pageContent.$eval('article#Longform .article__heading .meta__publisher', node => node.innerText);
             article.bodyBlockList = await getBodyBlockList(pageContent,
-                'article#longform .article__content [class*="article__paragraph"], ' +
-                'article#longform .article__content [class*="article__sub-title"], ' +
-                'article#longform .article__content blockquote,' +
-                'article#longform .article__content figure img')
+                'article#longform [class*="article__content"] [class*="article__paragraph"], ' +
+                'article#longform [class*="article__content"] [class*="article__sub-title"], ' +
+                'article#longform [class*="article__content"] blockquote,' +
+                'article#longform [class*="article__content"] figure img')
         }else{
             article.title.ori = processStr(await pageContent.$eval('header[class*="article__header"] .article__title', node => node.innerText));
             article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
@@ -94,7 +94,7 @@ module.exports.parseLiveNews = async (browser, url) => {
         liveTime.setHours(Number(timeText.split(':')[0]));
         liveTime.setMinutes(Number(timeText.split(':')[1]));
         return {
-            liveTitle: {ori: liveTitle, cn:await pushToQueueAndWaitForTranslateRes(liveTitle)},
+            liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
             liveHref: url,
             liveTime,
             liveContent: {

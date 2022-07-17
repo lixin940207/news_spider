@@ -90,8 +90,8 @@ parseLiveNews = async (browser, url) => {
                 date.setMinutes(Number(timeText.split(':')[1]));
             }
         } else if(await ifSelectorExists(element, '.content_post .subheading')){
-            liveTitle = await element.$eval('.action_header .action_minutes', node => node.innerText) +
-                (await element.$eval('.content_post .subheading', node=>node.innerText));
+            liveTitle = processStr(await element.$eval('.action_header .action_minutes', node => node.innerText) +
+                (await element.$eval('.content_post .subheading', node=>node.innerText)));
         }else{
             console.log(url);
         }

@@ -20,6 +20,6 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     article.publishTime = new Date(await pageContent.$eval('article time[datetime]', node => node.getAttribute('datetime')));
 
     article.bodyBlockList = await getBodyBlockList(pageContent,
-        'article div[class*="t-content__body"] p')
+        'article div[class*="t-content__body"] > p')
     return article;
 }

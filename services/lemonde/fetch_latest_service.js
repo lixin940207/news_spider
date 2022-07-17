@@ -53,8 +53,7 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     // objects.category = objects.articleHref.split('/')[3];
-    news.title.ori = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
     news.categories = determineCategory(news.title.ori);
     news.newsType = NewsTypes.CardWithTitleWide;
     if (await ifSelectorExists(element,'.article__desc')) {
@@ -70,15 +69,16 @@ parseNews = async (element, idx) => {
     }
     news.isLive = (await element.$$('[class*="flag-live-cartridge"]')).length > 0;
     if (news.isLive) {
-        if(news.title.ori.includes('LIVE')) news.title.ori = news.title.ori.split('LIVE')[1];
+        news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
         const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
         news.liveNewsList = liveNewsList;
         news.publishTime = latestTime;
         news.newsType = hasImage ? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithLive;
     } else {
         news.article = await goToArticlePageAndParse(browser, news.articleHref);
-        news.publishTime = news.article.publishTime
+        news.publishTime = news.article.publishTime;
     }
+    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
     if (await ifSelectorExists(element,'ul[class*="article__related"]')) {
         const relatedElementList = await element.$$('ul[class*="article__related"] li a');
         if(news.isLive){

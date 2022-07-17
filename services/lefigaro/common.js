@@ -156,13 +156,20 @@ parseLiveNews = async (browser, url) => {
     const liveElementList = await pageLive.$$('article[class*="live-message"]');
     const liveNewsList =  await Promise.all(liveElementList.map(async element => {
         const liveTitle = processStr(await element.$eval('[itemprop="headline"]', node => node.innerText));
-        const summary = processStr(await element.$eval('.live-article', node => node.innerHTML));
+        const content = await element.$eval('.live-article', node => node.innerText);
+        const bodyBlockList = await Promise.all(content.split('\n').map(i=>i.trim()).filter(i=>i!=="").map(async i=>{
+            return {
+                type: "p",
+                ori: i,
+                cn: await pushToQueueAndWaitForTranslateRes(i),
+            }
+        }))
         return {
             liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
             liveHref: url,
             liveTime: new Date(await element.$eval('time', node => node.getAttribute('datetime'))),
             liveContent: {
-                summary: {ori: summary, cn: await pushToQueueAndWaitForTranslateRes(summary)}
+                bodyBlockList
             }
         };
     }));

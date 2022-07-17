@@ -74,7 +74,7 @@ parseNews = async (element, idx) => {
         const relatedElementList = await element.$$('li[class*="nw-c-related-story"] a');
         news.relatedNewsList = await Promise.all(relatedElementList.map(async element => {
             const articleHref = await element.evaluate(node=>node.getAttribute('href'));
-            const title = await element.evaluate(node=>node.innerText);
+            const title = processStr(await element.evaluate(node=>node.innerText));
             return {
                 title: {ori: title, cn: await pushToQueueAndWaitForTranslateRes(title)},
                 article: await parseArticle(browser, BASE_URL + articleHref)

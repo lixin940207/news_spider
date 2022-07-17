@@ -63,9 +63,9 @@ parseNews = async (element, idx) => {
         news.imageHref = (await element.$eval('img[src] + noscript', node => node.innerText)).split('"')[1];
     }
     news.isLive = false;
-    news.newsType = NewsTypes.CardWithImage
+    news.newsType = NewsTypes.CardWithImage;
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
-    news.publishTime = news.article.publishTime
+    news.publishTime = news.article.publishTime;
     return news;
 }
 

@@ -20,20 +20,18 @@ parseLiveNews = async (browser, url)=>{
             if (!(await ifSelectorExists(element, 'time span.qa-post-auto-meta'))) return;
 
             const timeText = await element.$eval('time span.qa-post-auto-meta', node => node.innerText);
-            let m = moment.utc();
-            m.set({
-                hour: Number(timeText.split(':')[0]),
-                minute: Number(timeText.split(':')[1]),
-            })
+            // let m = moment.utc();
+            let date = new Date();
+            date.setHours(Number(timeText.split(':')[0]));
+            date.setMinutes(Number(timeText.split(':')[1]));
             return {
                 liveTitle: {
                     ori: liveTitle,
                     cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
                 liveHref: url,
-                liveTime: m.toDate(),
+                liveTime: date,
                 liveContent: {
                     articleHref: url,
-                    publishTime: m.toDate(),
                     bodyBlockList: await getBodyBlockList(element,
                         'div.lx-stream-post-body img, ' +
                         'div.lx-stream-post-body p, ' +

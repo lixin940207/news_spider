@@ -82,7 +82,7 @@ parseNews = async (element, idx) => {
                 let relatedNewsListTemp = await Promise.all(subElementList.map(async node => {
                     if ((await node.$$('.fig-live-mark')).length === 0) {
                         const articleHref = await node.$eval('a', node => node.getAttribute('href'));
-                        const title = await node.$eval('a', node => node.innerText);
+                        const title = processStr(await node.$eval('a', node => node.innerText));
                         return {
                             title: {
                                 ori:title,
@@ -102,7 +102,7 @@ parseNews = async (element, idx) => {
                 let liveElementListTemp = await Promise.all(subElementList.map(async node => {
                     if ((await node.$$('.fig-live-mark')).length > 0) {
                         let articleHref = await node.$eval('a', node => node.getAttribute('href'));
-                        let title = await node.$eval('a', node => node.innerText);
+                        let title = processStr(await node.$eval('a', node => node.innerText));
                         const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                         return {
                             ranking:idx,
@@ -166,8 +166,9 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     if (hasRelated) {
         const relatedElementList = await element.$$('ul li');
         news.relatedNewsList = await Promise.all(relatedElementList.map(async node => {
+            const title = processStr(await node.$eval('a', n => n.innerText));
             return {
-                title: {ori: await node.$eval('a', n => n.innerText)},
+                title: {ori: title, cn: await pushToQueueAndWaitForTranslateRes(title)},
                 article: await parseArticle(browser, await node.$eval('a', n => n.getAttribute('href')))
             }
         }));

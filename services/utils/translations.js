@@ -3,6 +3,7 @@ const axios = require('axios');
 const {Translate} = require('@google-cloud/translate').v2;
 const md5 = require('md5');
 const assert = require("assert");
+const {delAsync} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
 const {getAsync} = require("../redis_connection");
 const {REDIS_INPUT_QUEUE_KEY} = require("../../config/config");
@@ -23,7 +24,7 @@ const translate = new Translate({
 
 
 async function pushToQueueAndWaitForTranslateRes(q) {
-    if (q === undefined || q === null){
+    if (q === undefined || q === null || q === ''){
         return "";
     }
     const salt = (new Date).getTime();
@@ -36,8 +37,10 @@ async function pushToQueueAndWaitForTranslateRes(q) {
 async function recursiveGetValidResult(sign) {
     const reply = await getAsync(sign);
     if (reply !== null){
+        await delAsync(sign);
         return reply;
     }else{
+        // Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
         return await recursiveGetValidResult(sign);
     }
 }

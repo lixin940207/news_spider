@@ -18,6 +18,7 @@ const { promisify } = require("util");
 const getAsync = promisify(redisClient.get).bind(redisClient);
 const rPushAsync = promisify(redisClient.rpush).bind(redisClient);
 const lPopAsync = promisify(redisClient.lpop).bind(redisClient);
+const delAsync = promisify(redisClient.del).bind(redisClient);
 //
 // setInterval(async ()=>{
 //     const reply = await lPopAsync(REDIS_INPUT_QUEUE_KEY);
@@ -35,4 +36,5 @@ module.exports = {
     getAsync,
     rPushAsync,
     lPopAsync,
+    delAsync
 };
