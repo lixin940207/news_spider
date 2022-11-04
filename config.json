@@ -1,0 +1,9 @@
+{
+  "mongodb": {
+    "replicaSetHosts": "localhost:27017",
+    "writeConcern": "majority",
+    "replicaSet": "rs0",
+    "readPreference": "primary",
+    "database": "news_spider"
+  }
+}

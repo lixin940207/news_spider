@@ -1,9 +1,16 @@
 const mongoose = require("mongoose")
 const logger = require('../config/logger');
 
-const uri = 'mongodb://localhost:27017/news_spider';
+const fs = require('fs');
+const path = require("path");
 
 mongoose.Promise = Promise;
+
+const data = fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf-8' });
+const config = JSON.parse(data);
+
+const { replicaSetHosts, database, writeConcern, readPreference } = config.mongodb;
+const uri = `mongodb://${replicaSetHosts}/${database}?w=${writeConcern}&readPreference=${readPreference}`;
 
 
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true });
