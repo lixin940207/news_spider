@@ -5,6 +5,7 @@ const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 goToDetailPageAndParse = async (browser, url) => {
     const pageContent = await browser.newPage();
@@ -28,10 +29,11 @@ goToArticlePageAndParse = async (pageContent) => {
     const article = new ArticleObject();
 
     article.title.ori = processStr(await pageContent.$eval('#contain_title', node => node.innerText));
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
+
     if (await ifSelectorExists(pageContent, '.content_body_wrapper .chapo')){
         article.summary.ori = processStr(await pageContent.$eval('.content_body_wrapper .chapo', node => node.innerText));
-        article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+        article.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.summary.ori) : "";
     }
     const timeText = await pageContent.$eval('header #signatures_date time', node => node.innerText);
     const date = new Date(moment(timeText.split(' à ')[0], 'DD/MM/YYYY', 'fr'));
@@ -51,10 +53,10 @@ goToVideoPageAndParse = async (pageContent) => {
     const article = new ArticleObject();
 
     article.title.ori = processStr(await pageContent.$eval('#contain_title', node => node.innerText));
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
     if (await ifSelectorExists(pageContent, '#content_description')){
         article.summary.ori = await pageContent.$eval('#content_description', node => node.innerText);
-        article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+        article.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.summary.ori): "";
     }
     const timeText = await pageContent.$eval('#content_scroll_start time', node => node.innerText);
     const date = new Date(moment(timeText.split(' à ')[0], 'DD/MM/YYYY', 'fr'));
@@ -71,7 +73,7 @@ parseLiveNews = async (browser, url) => {
     try {
         await pageLive.waitForSelector('article', {timeout: 0});
     } catch (e) {
-        logger.error(url + 'has problem!')
+        logger.error(url + ' has problem!')
     }
     const liveElementList = await pageLive.$$('div.content_live_block[id^="article_"]');
     const liveNewsList = await Promise.all(liveElementList.map(async element => {
@@ -96,7 +98,9 @@ parseLiveNews = async (browser, url) => {
             console.log(url);
         }
         return {
-            liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
+            liveTitle: {ori: liveTitle,
+                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(liveTitle):"",
+            },
             liveTime: date,
             liveContent: {
                 bodyBlockList: await getBodyBlockList(element,

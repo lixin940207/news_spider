@@ -24,14 +24,27 @@ const translate = new Translate({
 
 
 async function pushToQueueAndWaitForTranslateRes(q) {
-    if (q === undefined || q === null || q === ''){
+    if (!q ){
         return "";
+    } else if (q.split('\n').length > 1) {
+        return (
+            await Promise.all(
+                (q.split('\n').map( async s => {
+                    const salt = (new Date).getTime();
+                    const str = BAIDU_APP_ID + s + salt + BAIDU_SECRET_KEY;
+                    const sign = md5(str);
+                    await rPushAsync(REDIS_INPUT_QUEUE_KEY, JSON.stringify({q: s, sign, salt}));
+                    return await recursiveGetValidResult(sign);
+                })
+            ))
+        ).join('\n');
+    }  else {
+        const salt = (new Date).getTime();
+        const str = BAIDU_APP_ID + q + salt + BAIDU_SECRET_KEY;
+        const sign = md5(str);
+        await rPushAsync(REDIS_INPUT_QUEUE_KEY, JSON.stringify({q, sign, salt}));
+        return await recursiveGetValidResult(sign);
     }
-    const salt = (new Date).getTime();
-    const str = BAIDU_APP_ID + q + salt + BAIDU_SECRET_KEY;
-    const sign = md5(str);
-    await rPushAsync(REDIS_INPUT_QUEUE_KEY, JSON.stringify({q, sign, salt}));
-    return await recursiveGetValidResult(sign);
 }
 
 async function recursiveGetValidResult(sign) {
@@ -40,7 +53,6 @@ async function recursiveGetValidResult(sign) {
         await delAsync(sign);
         return reply;
     }else{
-        // Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
         return await recursiveGetValidResult(sign);
     }
 }

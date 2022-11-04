@@ -5,6 +5,7 @@ const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
@@ -20,9 +21,9 @@ goToArticlePageAndParse = async (browser, url) => {
     }
 
     article.title.ori = processStr(await pageContent.$eval('article header [class*="title_xl"]', node => node.innerText));
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE?await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
     article.summary.ori = processStr(await pageContent.$eval('article header [class*="subheadline"]', node => node.innerText));
-    article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+    article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
     const timeText = await pageContent.$eval('article section#left [class*="timestamp"]', node => node.innerText);
     let date = '';
     if (timeText.includes('modifié')) {
@@ -55,9 +56,9 @@ parseLiveNews = async (browser, url) => {
     }
     article.articleHref = url;
     article.title.ori = processStr(await pageLive.$eval('header.article_header h1', node => node.innerText));
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
     article.summary.ori = processStr(await pageLive.$eval('header.article_header h2', node => node.innerText));
-    article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+    article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
 
     // const liveElementList = await pageLive.$$('article div[class*="article-section"] section.content p[class*="paragraph"]');
     // const liveNewsListTemp = await Promise.all(liveElementList.map(async element => {
@@ -134,18 +135,34 @@ parseLiveNews = async (browser, url) => {
     }));
 
     const liveNewsList = await Promise.all(liveElementText.map(async (element, i) => {
-        const liveTitle = await element.evaluate('h2', n => n.innerText);
+        let liveTitle = "";
+        try {
+            liveTitle = await element.evaluate('h2', n => n.innerText);
+        } catch (e) {
+
+        }
         const summary = await getBodyBlockList(element, 'p,ul');
         return {
-            liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
-            liveTime: liveElementDateTemp[i],
+            liveTitle: {
+                ori: liveTitle,
+                cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(liveTitle):""
+            },
+            liveTime: liveElementDateTemp[i] === undefined? new Date() : liveElementDateTemp[i],
             liveContent: {
-                summary: {ori: summary, cn: await pushToQueueAndWaitForTranslateRes(summary)}
+                bodyBlockList: {
+                    ori: summary,
+                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(summary):summary
+                }
             }
         }
     }))
-
-    const latestTime = new Date(Math.max.apply(null,liveNewsList.map(i=>i.liveTime)));
+    let latestTime = Math.max.apply(null,liveNewsList.map(i=>i.liveTime));
+    if (latestTime == null) {
+        latestTime = new Date();
+    } else {
+        latestTime = new Date(latestTime);
+    }
+    // const latestTime = new Date();
 
     return {liveNewsList, article, latestTime};
 }

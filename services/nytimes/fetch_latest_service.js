@@ -25,7 +25,9 @@ crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('NYTimes a new crawling start.' + current_ts);
     objs = {}
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         waitUntil: 'load',

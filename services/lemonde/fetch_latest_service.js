@@ -3,7 +3,7 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeMondeURL;
 const logger = require('../../config/logger');
 const {processStr} = require("../utils/util");
@@ -19,7 +19,9 @@ let browser;
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('LeMonde new crawling start.'+ current_ts);
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         timeout: 0,
@@ -58,7 +60,7 @@ parseNews = async (element, idx) => {
     news.newsType = NewsTypes.CardWithTitleWide;
     if (await ifSelectorExists(element,'.article__desc')) {
         news.summary.ori = processStr(await element.$eval('.article__desc', node => node.innerText));
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     let hasImage = false;
@@ -78,7 +80,7 @@ parseNews = async (element, idx) => {
         news.article = await goToArticlePageAndParse(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
     }
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     if (await ifSelectorExists(element,'ul[class*="article__related"]')) {
         const relatedElementList = await element.$$('ul[class*="article__related"] li a');
         if(news.isLive){
@@ -90,7 +92,7 @@ parseNews = async (element, idx) => {
                     return {
                         title: {
                             ori: title,
-                            cn: await pushToQueueAndWaitForTranslateRes(title),
+                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
                         },
                         ranking:idx,
                         isLive: true,
@@ -110,7 +112,7 @@ parseNews = async (element, idx) => {
                     return {
                         title: {
                             ori: title,
-                            cn: await pushToQueueAndWaitForTranslateRes(title),
+                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
                         },
                         article,
                         publishTime: article.publishTime,
@@ -137,7 +139,7 @@ parseNews = async (element, idx) => {
                     return {
                         title: {
                             ori: title,
-                            cn: await pushToQueueAndWaitForTranslateRes(title),
+                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
                         },
                         article: await goToArticlePageAndParse(browser, await element.evaluate(node=>node.getAttribute('href'))),
                     }
@@ -152,7 +154,7 @@ parseNews = async (element, idx) => {
                     return {
                         title: {
                             ori: title,
-                            cn: await pushToQueueAndWaitForTranslateRes(title),
+                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
                         },
                         ranking: idx,
                         articleHref,
@@ -171,7 +173,13 @@ parseNews = async (element, idx) => {
 }
 
 // schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl().then(r => {})
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 

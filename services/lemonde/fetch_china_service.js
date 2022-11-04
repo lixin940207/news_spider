@@ -16,14 +16,16 @@ let browser;
 
 crawl = async () => {
     logger.info('LeMonde china objects start crawling.'+ Date.now())
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         timeout: 0,
         waitUntil: "load",
     });
     logger.info('LeMonde got to the page.')
-    await page.waitForSelector('section#river', {timeout: 0})
+    await page.waitForSelector('section#river')
     logger.info('loaded')
     const elementList = await page.$$('section#river div.thread')
 
@@ -63,5 +65,11 @@ parseNews = async (element, idx) => {
     return news;
 }
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl()
+    // .then(s => process.exit())
+    // .catch(r => {
+    //         logger.error(r);
+    //         process.exit(1);
+    //     }
+    // );

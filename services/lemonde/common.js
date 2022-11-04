@@ -4,6 +4,7 @@ const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 module.exports.goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
@@ -13,39 +14,45 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
         timeout: 0
     });
     await pageContent.bringToFront();
-    await pageContent.waitForSelector('main', {timeout: 0});
+    await pageContent.waitForSelector('main');
 
     if (url.split('/')[3] === 'blog'){
         article.title.ori = processStr(await pageContent.$eval('main#main .entry-title', node => node.innerText));
-        article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+        article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
         article.publishTime = new Date(await pageContent.$eval('time[datetime]', node => node.getAttribute('datetime')));
         article.bodyBlockList = await getBodyBlockList(pageContent,'.entry-content img,' +
             '.entry-content p');
         return article;
-    }else {
+    } else if (url.split('/')[4] === 'visuel') {
+        article.title.ori = processStr(await pageContent.$eval('div.intro', node => node.innerText));
+        article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
+        article.bodyBlockList = await getBodyBlockList(pageContent, 'div.chapo p');
+    }
+    else {
         let dateHeader;
         if (await ifSelectorExists(pageContent, 'article#Longform')){
             article.title.ori = processStr(await pageContent.$eval('article#Longform .article__heading h1', node => node.innerText));
-            article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+            article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
             article.summary.ori = processStr(await pageContent.$eval('article#Longform .article__heading .article__info .article__desc', node => node.innerText));
-            article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+            article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
             dateHeader = await pageContent.$eval('article#Longform .article__heading .meta__publisher', node => node.innerText);
             article.bodyBlockList = await getBodyBlockList(pageContent,
                 'article#longform [class*="article__content"] [class*="article__paragraph"], ' +
                 'article#longform [class*="article__content"] [class*="article__sub-title"], ' +
                 'article#longform [class*="article__content"] blockquote,' +
                 'article#longform [class*="article__content"] figure img')
-        }else{
+        } else {
             article.title.ori = processStr(await pageContent.$eval('header[class*="article__header"] .article__title', node => node.innerText));
-            article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+            article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
             article.summary.ori = processStr(await pageContent.$eval('header[class*="article__header"] .article__desc', node => node.innerText));
-            article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+            article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
             dateHeader = await pageContent.$eval('header[class*="article__header"] span[class*="meta__date"]', node => node.innerText);
 
             article.bodyBlockList = await getBodyBlockList(pageContent,
                 'section[class*="article__wrapper"] article[class*="article__content"] [class*="article__paragraph"], ' +
                 'section[class*="article__wrapper"] article[class*="article__content"] [class*="article__sub-title"], ' +
-                'section[class*="article__wrapper"] article[class*="article__content"] blockquote');
+                'section[class*="article__wrapper"] article[class*="article__content"] blockquote,' +
+                'section[class*="article__wrapper"] article[class*="article__content"] figure.article__media img');
         }
         let date;
             if (dateHeader.includes("aujourd’hui") || dateHeader.includes("mis à jour à")) {
@@ -77,8 +84,8 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
 
 module.exports.parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
-    await pageLive.goto(url, {waitUntil: 'load', timeout: 0});
-    await pageLive.waitForSelector('section[class*="sirius-live"]', {timeout: 0});
+    await pageLive.goto(url, {waitUntil: 'load'});
+    await pageLive.waitForSelector('section[class*="sirius-live"]');
     const liveElementList = await pageLive.$$('section#post-container > section.post.post__live-container');
     let liveNewsList =  await Promise.all(liveElementList.map(async element => {
         let liveTitle = '';
@@ -94,7 +101,9 @@ module.exports.parseLiveNews = async (browser, url) => {
         liveTime.setHours(Number(timeText.split(':')[0]));
         liveTime.setMinutes(Number(timeText.split(':')[1]));
         return {
-            liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
+            liveTitle: {ori: liveTitle,
+                cn: ENABLE_TRANSLATE?await pushToQueueAndWaitForTranslateRes(liveTitle):""
+            },
             liveHref: url,
             liveTime,
             liveContent: {

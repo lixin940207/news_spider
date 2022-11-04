@@ -3,7 +3,9 @@ const {getBodyBlockList} = require("../services/utils/util");
 // const {goToArticlePageAnxdParse} = require("../services/nytimes/common");
 
 (async ()=>{
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     const url = 'https://www.nytimes.com/live/2021/07/26/world/covid-delta-variant-vaccine'
     await page.goto(url, {

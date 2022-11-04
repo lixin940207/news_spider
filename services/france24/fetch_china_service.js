@@ -3,7 +3,7 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.France24URL;
 const logger = require('../../config/logger');
 const {processStr} = require("../utils/util");
@@ -17,7 +17,9 @@ let browser;
 
 crawl = async () => {
     logger.info('France24 china objects start crawling.')
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         timeout: 0,
@@ -55,7 +57,7 @@ parseNews = async (element, idx) => {
     if(!determineCategory(news.title.ori).includes('China')){
         return;
     }
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
     if ((await element.$$('img[src]')).length > 0) {
         news.imageHref = (await element.$eval('img[src] + noscript', node => node.innerText)).split('"')[1];
@@ -67,8 +69,14 @@ parseNews = async (element, idx) => {
 }
 
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 

@@ -13,14 +13,17 @@ const {getImageHref} = require("../utils/util");
 const {parseLiveNews, parseArticle} = require("./common");
 const {ifSelectorExists} = require("../utils/util");
 const {determineCategory} = require("../utils/util");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 
 let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('LeFigaro a new crawling start.'+ current_ts);
-    browser = await puppeteer.launch({timeout:0});
+    browser = await puppeteer.launch({
+        timeout:0,
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {waitUntil: 'domcontentloaded', timeout: 0});
     logger.info('LeFigaro got to the page.');
@@ -62,7 +65,7 @@ parseNews = async (element, idx) => {
                         ranking:idx,
                         title: {
                             ori: title,
-                            cn: await pushToQueueAndWaitForTranslateRes(title),
+                            cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title) : "",
                         },
                         categories: determineCategory(title),
                         articleHref,
@@ -86,7 +89,7 @@ parseNews = async (element, idx) => {
                         return {
                             title: {
                                 ori:title,
-                                cn: await pushToQueueAndWaitForTranslateRes(title),
+                                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title): "",
                             },
                             article: await parseArticle(browser, articleHref),
                         }
@@ -108,7 +111,7 @@ parseNews = async (element, idx) => {
                             ranking:idx,
                             title: {
                                 ori: title,
-                                cn: await pushToQueueAndWaitForTranslateRes(title),
+                                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title): "",
                             },
                             categories: determineCategory(title),
                             articleHref,
@@ -141,10 +144,10 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     news.newsType = NewsTypes.CardWithTitleWide;
     news.isLive = (await element.$$('fig-live-mark')).length > 0
     news.title.ori = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')){
         news.summary.ori = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+        news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     news.categories = determineCategory(news.title.ori);
@@ -168,7 +171,9 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
         news.relatedNewsList = await Promise.all(relatedElementList.map(async node => {
             const title = processStr(await node.$eval('a', n => n.innerText));
             return {
-                title: {ori: title, cn: await pushToQueueAndWaitForTranslateRes(title)},
+                title: {ori: title,
+                    cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title): ""
+                },
                 article: await parseArticle(browser, await node.$eval('a', n => n.getAttribute('href')))
             }
         }));
@@ -187,14 +192,14 @@ parseProfileOrLiveNews = async (element, idx, isLive) => {
         console.log(await element.evaluate(node=>node.outerHTML))
     }
     news.title.ori = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
     news.categories = determineCategory(news.title.ori);
     news.articleHref = await element.$eval('a.fig-profile__link', node => node.getAttribute('href'));
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
     if(news.imageHref !== undefined)    news.newsType = isLive? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithImage
     news.summary.ori = processStr(await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText));
-    news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+    news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
     if (isLive) {
         const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
         news.liveNewsList = liveNewsList;
@@ -211,7 +216,7 @@ parseEnsembleLiveNews = async (element, idx) => {
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithImageAndLive;
     news.title.ori = processStr(await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     news.categories = determineCategory(news.title.ori);
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'))
     // objects.category = objects.articleHref.split('/')[3];
@@ -226,6 +231,11 @@ parseEnsembleLiveNews = async (element, idx) => {
 }
 
 // schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl().then(r => {})
-
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 

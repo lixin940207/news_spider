@@ -20,7 +20,9 @@ let browser;
 
 crawl = async () => {
     logger.info('LeParisien china objects start crawling.')
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         timeout: 0,

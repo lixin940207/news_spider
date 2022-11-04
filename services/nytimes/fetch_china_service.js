@@ -19,7 +19,9 @@ let browser;
 crawl = async () => {
     logger.info('NYTimes china objects start crawling.')
     objs = {}
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         waitUntil: 'load',

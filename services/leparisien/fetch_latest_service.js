@@ -3,7 +3,7 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
@@ -20,7 +20,9 @@ let browser;
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('LeParisien new crawling start.'+ current_ts);
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
     await page.goto(URL, {
         timeout: 0,
@@ -60,10 +62,10 @@ parseNews = async (element, idx) => {
     news.categories = determineCategory(news.title.ori);
     news.isLive = news.title.ori.startsWith('DIRECT.');
     if (news.isLive) news.title.ori = news.title.ori.slice(7,);
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
     if ((await element.$$('.story-subheadline')).length > 0) {
         news.summary.ori = processStr(await element.$eval('.story-subheadline', node => node.innerText));
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
     }
     news.newsType = NewsTypes.CardWithImage;
     if (news.isLive) {

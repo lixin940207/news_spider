@@ -3,12 +3,12 @@ const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
 const URL = require('../../config/config').CHINA_NEWS_URLS.BBCURL;
-const {CRAWL_TIME_INTERVAL} = require('../../config/config');
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const moment = require('moment-timezone');
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/util");
+const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {parseTime, parseArticle} = require("./common");
 const {ifSelectorExists, determineCategory, getImageHref} = require("../utils/util");
 const BASE_URL = 'https://www.bbc.com';
@@ -19,7 +19,9 @@ let browser;
 
 crawl = async () => {
     logger.info('BBC china objects start crawling.')
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
 
     await page.goto(URL, {
@@ -53,7 +55,7 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx
     news.title.ori = processStr(await element.$eval('header[class*="lx-stream-post__header"]', node => node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     news.newsType = NewsTypes.CardWithTitleWide
     news.categories = ['China'];
     if(await ifSelectorExists(element, '.lx-stream-related-story')){
@@ -67,9 +69,14 @@ parseNews = async (element, idx) => {
 }
 
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-
-
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 

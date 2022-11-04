@@ -3,7 +3,7 @@ const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
 const URL = require('../../config/config').ORIGINAL_URLS.BBCURL;
-const {CRAWL_TIME_INTERVAL} = require('../../config/config');
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {processStr} = require("../utils/util");
@@ -18,8 +18,10 @@ let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
-    logger.info('BBC-a new crawling start.'+ current_ts )
-    browser = await puppeteer.launch();
+    logger.info('BBC-a new crawling start.' + current_ts)
+    browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--no-zygote', '--single-process'],
+    });
     const page = await browser.newPage();
 
     await page.goto(URL, {
@@ -41,7 +43,7 @@ crawl = async () => {
     }
     const allNewsResult = await Promise.all(promises);
     logger.info('BBC-parsed all objects.')
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = 'BBC';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
@@ -73,69 +75,70 @@ parseNews = async (element, idx) => {
     if (newsType === 1) {
         const relatedElementList = await element.$$('li[class*="nw-c-related-story"] a');
         news.relatedNewsList = await Promise.all(relatedElementList.map(async element => {
-            const articleHref = await element.evaluate(node=>node.getAttribute('href'));
-            const title = processStr(await element.evaluate(node=>node.innerText));
+            const articleHref = await element.evaluate(node => node.getAttribute('href'));
+            const title = processStr(await element.evaluate(node => node.innerText));
             return {
-                title: {ori: title, cn: await pushToQueueAndWaitForTranslateRes(title)},
+                title: {
+                    ori: title,
+                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title) : "",
+                },
                 article: await parseArticle(browser, BASE_URL + articleHref)
             }
         }))
         news.newsType = NewsTypes.CardWithImageAndSubtitle;
-        if (news.isLive){
+        if (news.isLive) {
             news.newsType = NewsTypes.CardWithImageAndLive
         }
     } else if (newsType === 2) {
-        if (news.isLive){
+        if (news.isLive) {
             news.newsType = NewsTypes.CardWithLive;
-        }else{
+        } else {
             news.newsType = NewsTypes.CardWithImage;
         }
     } else {
-        if (news.isLive){
+        if (news.isLive) {
             news.newsType = NewsTypes.CardWithLive;
-        }else {
+        } else {
             news.newsType = NewsTypes.CardWithTitleWide;
         }
     }
     return news;
 }
 
-
 getCommonPart = async (element) => {
     const news = new NewsObject();
     // const content_element = await element.$('div.gs-c-promo-body');
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
-    if (!news.articleHref.startsWith('http')){
+    if (!news.articleHref.startsWith('http')) {
         news.articleHref = BASE_URL + news.articleHref;
     }
     // const image_element = await element.$('div.gs-c-promo-image');
-    if (await ifSelectorExists(element, 'img')){
+    if (await ifSelectorExists(element, 'img')) {
         news.imageHref = (await element.$eval('img', node => {
-            if (!(node.getAttribute('src').startsWith('http'))){
+            if (!(node.getAttribute('src').startsWith('http'))) {
                 return node.getAttribute('data-src');
             }
             return node.getAttribute('src');
         })).replace('{width}', '240');
     }
-    news.title.ori = processStr(await element.$eval('[class*="nw-o-link-split__text"]', node=>node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.ori = processStr(await element.$eval('[class*="nw-o-link-split__text"]', node => node.innerText));
+    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     news.categories = determineCategory(news.title.ori);
-    if ((await element.$$('p[class*="gs-c-promo-summary"]')).length > 0)
-    {
+    if ((await element.$$('p[class*="gs-c-promo-summary"]')).length > 0) {
         news.summary.ori = processStr(await element.$eval('p[class*="gs-c-promo-summary"]', node => node.innerText));
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
     }
     if ((await element.$$('time[class*="qa-status-date"][datetime]')).length > 0) {
         news.publishTime = new Date(await element.$eval('time[class*="qa-status-date"][datetime]', node => node.getAttribute('datetime')));
     }
-    if((await element.$$('a[class*="gs-c-section-link"]')).length > 0) {
+    if ((await element.$$('a[class*="gs-c-section-link"]')).length > 0) {
         news.region = await element.$eval('a[class*="gs-c-section-link"]', node => node.innerText);
     }
     // news.isVideo = (await element.$$('span[class*="gs-c-media-indicator"]')).length > 0;
     news.isLive = (await element.$$('[class*="gs-c-live-pulse"]')).length > 0;
-    if ( !news.isLive) {
+    if (!news.isLive) {
         news.article = await parseArticle(browser, news.articleHref);
-    } else if (news.isLive){
+    } else if (news.isLive) {
         const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
         news.liveNewsList = liveNewsList;
         news.publishTime = latestTime;
@@ -144,11 +147,14 @@ getCommonPart = async (element) => {
     return news;
 }
 
-
-
-
 // schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl().then(r => {})
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 

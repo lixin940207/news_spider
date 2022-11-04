@@ -1,5 +1,6 @@
 const categories = require('./categories');
 const {pushToQueueAndWaitForTranslateRes} = require("./translations");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 async function ifSelectorExists(element, selector) {
     return (await element.$$(selector)).length > 0;
@@ -119,7 +120,7 @@ async function getBodyBlockList(element, selectors, translate=true) {
             }
         ));
     blockList = blockList.filter(i=>i!==undefined && i!==null);
-    if(translate){
+    if(ENABLE_TRANSLATE){
         blockList = await Promise.all(blockList.map(async i=>{
             if(i.type!=='img' && i.type !== 'ul'){
                 i.ori = processStr(i.ori);

@@ -11,19 +11,22 @@ const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {parseArticle} = require("./common");
 const {ifSelectorExists, determineCategory} = require("../utils/util");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 
 let browser;
 
 crawl = async () => {
     logger.info('LeFigaro china objects start crawling.')
-    browser = await puppeteer.launch({timeout:0});
+    browser = await puppeteer.launch({
+        timeout:0,
+        args: ['--no-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(URL, {waitUntil: 'load', timeout: 0});
-    console.log('got to the page.')
-    await page.waitForSelector('#content-wrapper', {timeout: 0})
+    await page.goto(URL, {waitUntil: 'load'});
+    console.log('LeFigaro China got to the page.')
+    await page.waitForSelector('section.fig-main')
     console.log('loaded')
-    const elementList = await page.$$('#content-wrapper li.page-tag-item')
+    const elementList = await page.$$('section.fig-main article.fig-profile')
 
     let promises = [];
     for (let i = 0; i < elementList.length; i++) {
@@ -33,7 +36,9 @@ crawl = async () => {
     const allNewsResult = await Promise.all(promises);
     console.log(allNewsResult.map(i=>i.publishTime));
     logger.info('LeFigaro parsed all objects.')
-    await News.bulkUpsertNews(allNewsResult.flat().map(element=>{
+    await News.bulkUpsertNews(allNewsResult.flat()
+        .filter(element => element !== undefined)
+        .map(element=>{
         element.platform = "LeFigaro";
         return element;
     }));
@@ -42,30 +47,39 @@ crawl = async () => {
     await browser.close();
 }
 
-
 parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
-    news.title.ori = processStr(await element.$eval('[itemprop="name"]', node => node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.ori = processStr(await element.$eval('.fig-profile__headline', node => node.innerText));
+    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
     news.categories = ['China'];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
+    if (news.articleHref.split('/')[4] === 'video') {
+        return undefined;
+    }
     news.newsType = NewsTypes.CardWithTitleWide;
-    news.imageHref = await getImageHref(element, '.photo img');
+    news.imageHref = await getImageHref(element, 'figure.fig-profile__media img');
     if (news.imageHref !== undefined){
         news.newsType = NewsTypes.CardWithImage;
     }
-    if (await ifSelectorExists(element, 'p')){
-        news.summary.ori = processStr(await element.$eval('p', node => node.innerText));
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+    if (await ifSelectorExists(element, 'p.fig-profile__chapo')){
+        news.summary.ori = processStr(await element.$eval('p.fig-profile__chapo', node => node.innerText));
+        news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori) : "";
         news.newsType = news.imageHref!==undefined?NewsTypes.CardWithImageAndSummary:NewsTypes.CardWithTitleIntro;
     }
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
+    logger.info('parsed' + news.articleHref);
     return news;
 }
 
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 

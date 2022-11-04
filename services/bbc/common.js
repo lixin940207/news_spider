@@ -4,6 +4,7 @@ const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 parseLiveNews = async (browser, url)=>{
     const pageLive = await browser.newPage();
@@ -27,7 +28,8 @@ parseLiveNews = async (browser, url)=>{
             return {
                 liveTitle: {
                     ori: liveTitle,
-                    cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
+                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(liveTitle) : "",
+                },
                 liveHref: url,
                 liveTime: date,
                 liveContent: {
@@ -66,7 +68,7 @@ goToVideoPageAndParse = async (browser, url)=>{
     });
     await pageContent.waitForSelector('article', {timeout: 0});
     article.title.ori = processStr(await pageContent.$eval('#main-heading', node=>node.innerText));
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
     article.bodyBlockList = await getBodyBlockList(pageContent, 'article > div[class*="StyledSummary"] p')
 }
 
@@ -86,7 +88,7 @@ goToArticlePageAndParse = async (browser, url) => {
     } else{
         throw Error(url + " cannot find headline.")
     }
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
     article.articleHref = url;
     article.publishTime = new Date(await pageContent.$eval('time[datetime]', node=>node.getAttribute('datetime')));
 
@@ -116,7 +118,7 @@ goToSportArticlePageAndParse = async (browser, url) => {
     } else{
         throw Error(url + " cannot find headline.")
     }
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori) : "";
     article.articleHref = url;
     // article.headImageHref = await pageContent.$eval('[class*="story-body__media"] img', node=>node.getAttribute('src'));
     article.publishTime = new Date(await pageContent.$eval('article time[datetime]', node=>node.getAttribute('datetime')));
@@ -142,7 +144,7 @@ goToWeatherArticlePageAndParse = async (browser, url) => {
     await pageContent.waitForSelector('div[class*="wr-cs-feature"]', {timeout: 30000});
 
     article.title.ori = processStr(await pageContent.$eval('h1[class*="wr-feature-header__title"]', node=>node.innerText));
-    article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
 
     article.articleHref = url;
     const timeText = await pageContent.$eval('.wr-feature-header__duration-text', node=>node.innerText);
@@ -154,6 +156,7 @@ goToWeatherArticlePageAndParse = async (browser, url) => {
     article.publishTime = m.toDate();
 
     article.bodyBlockList = await getBodyBlockList(pageContent,'div.wr-cs-feature__content p');
+    await pageContent.close();
     return article;
 }
 
