@@ -21,6 +21,7 @@ module.exports = {
     TECHNOLOGY: {
         BBCURL: 'https://www.bbc.com/news/technology',
         TechCrunchURL: 'https://techcrunch.com',
+        WIRED: 'https://www.wired.com'
     },
     GOOGLE_TRANSLATION_API: "https://translation.googleapis.com/language/translate/v2",
     GOOGLE_API_KEY: "AIzaSyBIaJtErLTriGwvM_BVnmHMt-XBtU_ySAE",
