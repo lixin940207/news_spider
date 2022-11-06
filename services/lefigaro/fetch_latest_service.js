@@ -222,7 +222,7 @@ parseEnsembleLiveNews = async (element, idx) => {
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
     news.summary.ori = processStr(await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText));
-    news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+    news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
     news.isLive = true
     const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
     news.liveNewsList = liveNewsList;

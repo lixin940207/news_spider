@@ -16,7 +16,6 @@ const BASE_URL = 'https://www.bbc.com';
 const CHINA_URL = require('../../config/config').CHINA_NEWS_URLS.BBCURL;
 const TECH_URL = require('../../config/config').TECHNOLOGY.BBCURL;
 
-
 let browser;
 
 crawl = async (URL, category) => {
@@ -36,9 +35,9 @@ crawl = async (URL, category) => {
     logger.info('BBC-loaded.', {
         category,
     })
-    await page.waitForSelector('div#lx-stream', {timeout: 0})
+    await page.waitForSelector('div[aria-label="Top Stories"]', {timeout: 0})
 
-    const news_list = await page.$$('div#lx-stream li[class*="lx-stream__post-container"]')
+    const news_list = await page.$$('div[aria-label="Top Stories"] div.gs-c-promo.gs-t-News')
     logger.info('BBC-got dom.', {
         category,
     })
@@ -67,38 +66,58 @@ crawl = async (URL, category) => {
 parseNews = async (element, idx, category) => {
     const news = new NewsObject();
     news.ranking = idx
-    news.title.ori = processStr(await element.$eval('header[class*="lx-stream-post__header"]', node => node.innerText));
+    news.title.ori = processStr(await element.$eval('div.gs-c-promo-body .gs-c-promo-heading .gs-c-promo-heading__title', node => node.innerText));
     news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
-    news.newsType = NewsTypes.CardWithTitleWide
-    news.categories = [category];
-    if(await ifSelectorExists(element, '.lx-stream-related-story')){
-        news.imageHref = await getImageHref(element, '.lx-stream-related-story img');
-        if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;
-        news.articleHref = BASE_URL + await element.$eval('a[class*="lx-stream-post__header-link"]', node=>node.getAttribute('href'));
-        news.article = await parseArticle(browser, news.articleHref);
-        news.publishTime = news.article.publishTime;
-        return news;
+
+    news.imageHref = await getImageHref(element, 'div.gs-c-promo-image img');
+    // if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;
+    news.articleHref = BASE_URL + await element.$eval('div.gs-c-promo-body a.gs-c-promo-heading', node=>node.getAttribute('href'));
+    news.article = await parseArticle(browser, news.articleHref);
+    news.publishTime = news.article.publishTime;
+
+    if (await ifSelectorExists(element, 'div.gs-c-promo-body div.nw-c-top-stories-primary__related-content')) {
+        news.newsType = NewsTypes.CardWithImageAndSubtitle;
+        const relatedElementList = await element.$$('div.gs-c-promo-body div.nw-c-top-stories-primary__related-content li.nw-c-related-story a');
+        news.relatedNewsList = await Promise.all(relatedElementList.map(async element => {
+            const articleHref = await element.evaluate(node => node.getAttribute('href'));
+            const title = processStr(await element.evaluate(node => node.innerText));
+            return {
+                title: {
+                    ori: title,
+                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title) : "",
+                },
+                article: await parseArticle(browser, BASE_URL + articleHref)
+            }
+        }))
+    } else {
+        if (news.imageHref !== undefined) {
+            news.newsType = NewsTypes.CardWithTitleWide;
+        } else {
+            news.newsType = NewsTypes.CardWithTitleWide;
+        }
     }
-    logger.info("parsed news ", news.title.ori);
+    news.categories = [category];
+    logger.info("parsed news ", { title: news.title.ori});
+    return news;
 }
 
 
 schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl(CHINA_URL, "China")
-    .then(s => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
-
-// crawl(TECH_URL, "Tech")
+// crawl(CHINA_URL, "China")
 //     .then(s => process.exit())
 //     .catch(r => {
 //             logger.error(r);
 //             process.exit(1);
 //         }
 //     );
+
+crawl(TECH_URL, "Tech")
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 

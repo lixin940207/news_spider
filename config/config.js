@@ -18,6 +18,10 @@ module.exports = {
         BFMURL: 'https://www.bfmtv.com/international/asie/chine/',
         France24URL: 'https://www.france24.com/fr/asie-pacifique/',
     },
+    TECHNOLOGY: {
+        BBCURL: 'https://www.bbc.com/news/technology',
+        TechCrunchURL: 'https://techcrunch.com',
+    },
     GOOGLE_TRANSLATION_API: "https://translation.googleapis.com/language/translate/v2",
     GOOGLE_API_KEY: "AIzaSyBIaJtErLTriGwvM_BVnmHMt-XBtU_ySAE",
     BAIDU_TRANSLATION_API: "http://api.fanyi.baidu.com/api/trans/vip/translate",

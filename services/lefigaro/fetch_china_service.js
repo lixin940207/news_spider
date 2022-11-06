@@ -19,22 +19,24 @@ crawl = async () => {
     logger.info('LeFigaro china objects start crawling.')
     browser = await puppeteer.launch({
         timeout:0,
-        args: ['--no-sandbox'],
     });
     const page = await browser.newPage();
     await page.goto(URL, {waitUntil: 'load'});
-    console.log('LeFigaro China got to the page.')
-    await page.waitForSelector('section.fig-main')
-    console.log('loaded')
+    logger.info('LeFigaro China got to the page.');
+    await page.waitForSelector('section.fig-main');
+    logger.info('loaded');
     const elementList = await page.$$('section.fig-main article.fig-profile')
 
-    let promises = [];
+    // let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
+        // promises.push(p)
+        // await p;
     }
-    const allNewsResult = await Promise.all(promises);
-    console.log(allNewsResult.map(i=>i.publishTime));
+    // const allNewsResult = await Promise.all(promises);
+
+    // console.log(allNewsResult.map(i=>i.publishTime));
     logger.info('LeFigaro parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.flat()
         .filter(element => element !== undefined)
@@ -69,7 +71,7 @@ parseNews = async (element, idx) => {
     }
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
-    logger.info('parsed' + news.articleHref);
+    logger.info('parsed ' + news.articleHref);
     return news;
 }
 

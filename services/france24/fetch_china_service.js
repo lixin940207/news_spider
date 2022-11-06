@@ -60,7 +60,7 @@ parseNews = async (element, idx) => {
     news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
     if ((await element.$$('img[src]')).length > 0) {
-        news.imageHref = (await element.$eval('img[src] + noscript', node => node.innerText)).split('"')[1];
+        news.imageHref = (await element.$eval('img[src]', node => node.innerText)).split('"')[1];
     }
     news.newsType = NewsTypes.CardWithImage
     news.article = await goToArticlePageAndParse(browser, news.articleHref);

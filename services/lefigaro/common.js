@@ -25,14 +25,17 @@ goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: 0,
+        waitUntil: 'load',
+        timeout: 0
     });
-    await pageContent.bringToFront();
     if ((await pageContent.$$('article.fig-main')).length === 0) {
         console.log(url);
     }
-    await pageContent.waitForSelector('article.fig-main');
+    try {
+        await pageContent.waitForSelector('article.fig-main', {timeout: 30000});
+    } catch (e) {
+        logger.error(url + ' has problem!')
+    }
     const mainElement = await pageContent.$('article.fig-main');
 
     if(await ifSelectorExists(mainElement, '[class*="fig-headline"]')){

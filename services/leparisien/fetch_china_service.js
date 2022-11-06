@@ -3,7 +3,7 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
@@ -40,7 +40,7 @@ crawl = async () => {
     }
     const allNewsResult = await Promise.all(promises)
     const newsResult = allNewsResult.filter(i=>i!==undefined);
-    console.log(newsResult.map(i=>i.publishTime));
+    // console.log(newsResult.map(i=>i.publishTime));
 
     logger.info('LeParisien parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
@@ -59,14 +59,14 @@ parseNews = async (element, idx) => {
     if (!determineCategory(news.title.ori).includes('China')){
         return;
     }
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
     news.categories = ['China'];
     news.imageHref = BASE_URL + await element.$eval('img', node=>node.getAttribute('src'));
     news.newsType = NewsTypes.CardWithImage;
 
     if ((await element.$$('.story-subheadline')).length > 0) {
         news.summary.ori = processStr(await element.$eval('.story-subheadline', node => node.innerText));
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
@@ -75,8 +75,14 @@ parseNews = async (element, idx) => {
 }
 
 
-schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-
+// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 

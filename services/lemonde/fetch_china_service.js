@@ -8,7 +8,7 @@ const {processStr} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref, ifSelectorExists} = require("../utils/util");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
+const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.LeMondeURL;
 const {goToArticlePageAndParse} = require('./common');
 
@@ -35,7 +35,7 @@ crawl = async () => {
         promises.push(p)
     }
     const allNewsResult = await Promise.all(promises);
-    console.log(allNewsResult.map(i=>i.publishTime));
+    // console.log(allNewsResult.map(i=>i.publishTime));
     logger.info('LeMonde parsing all objects finish.')
     await News.bulkUpsertNews(allNewsResult.map(element=>{
         element.platform = "LeMonde";
@@ -50,13 +50,13 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
     news.articleHref = await element.$eval('a.teaser__link', node => node.getAttribute('href'));
     news.title.ori = processStr(await element.$eval('.teaser__title', node => node.innerText));
-    news.title.cn = await pushToQueueAndWaitForTranslateRes(news.title.ori);
+    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
     news.imageHref = await getImageHref(element, 'picture source');
     news.categories = ['China'];
     news.newsType = NewsTypes.CardWithImage;
     if (await ifSelectorExists(element,'.teaser__desc')) {
         news.summary.ori = processStr(await element.$eval('.teaser__desc', node => node.innerText));
-        news.summary.cn = await pushToQueueAndWaitForTranslateRes(news.summary.ori);
+        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
@@ -67,9 +67,9 @@ parseNews = async (element, idx) => {
 
 // schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
 crawl()
-    // .then(s => process.exit())
-    // .catch(r => {
-    //         logger.error(r);
-    //         process.exit(1);
-    //     }
-    // );
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );

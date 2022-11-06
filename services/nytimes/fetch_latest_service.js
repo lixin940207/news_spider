@@ -135,7 +135,13 @@ crawl = async () => {
 }
 
 // schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl().then(r => {})
+crawl()
+    .then(s => process.exit())
+    .catch(r => {
+            logger.error(r);
+            process.exit(1);
+        }
+    );
 
 
 
