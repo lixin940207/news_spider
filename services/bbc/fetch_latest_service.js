@@ -31,17 +31,19 @@ crawl = async () => {
     logger.info('BBC-loaded.')
     await page.waitForSelector('div[aria-label="Top Stories"]', {timeout: 0})
 
-    const news_list = await page.$$('div[aria-label="Top Stories"] div[class*="nw-c-top-stories-primary__story"],' +
+    const news_list = await page.$$('div[aria-label="Top Stories"] div.nw-p-oat div[data-entityid="container-top-stories#1"],' +
+        'div[aria-label="Top Stories"] div[class*="nw-c-top-stories-primary__story"],' +
         'div[aria-label="Top Stories"] div[class*="nw-c-top-stories__secondary-item"],' +
         'div[aria-label="Top Stories"]  div[class*="nw-c-top-stories__tertiary-items"]')
     logger.info('BBC-got dom.')
 
-    let promises = [];
+    // let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        let p = parseNews(news_list[i], i);
-        promises.push(p);
+        allNewsResult.push(await parseNews(news_list[i], i));
+        // promises.push(p);
     }
-    const allNewsResult = await Promise.all(promises);
+    // const allNewsResult = await Promise.all(promises);
     logger.info('BBC-parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = 'BBC';
@@ -57,7 +59,7 @@ getNewsType = async (element) => {
     return await element.evaluate(node => {
         const elementClass = node.getAttribute('class').toString();
         let newsType;
-        if (elementClass.includes('nw-c-top-stories-primary__story')) {
+        if (elementClass.includes('nw-c-top-stories-primary__story') || node.getAttribute('data-entityid')?.toString() === "container-top-stories#1") {
             newsType = 1;
         } else if (elementClass.includes('nw-c-top-stories__tertiary-items')) {
             newsType = 3;
@@ -86,6 +88,9 @@ parseNews = async (element, idx) => {
             }
         }))
         news.newsType = NewsTypes.CardWithImageAndSubtitle;
+        if (news.relatedNewsList.length < 3 && news.relatedNewsList.map(news => news.title.ori.length).reduce((a,b)=>a+b, 0) < 80) {
+            news.newsType = NewsTypes.CardWithImage;
+        }
         if (news.isLive) {
             news.newsType = NewsTypes.CardWithImageAndLive
         }
@@ -139,10 +144,13 @@ getCommonPart = async (element) => {
     if (!news.isLive) {
         news.article = await parseArticle(browser, news.articleHref);
     } else if (news.isLive) {
-        const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
+        const {liveNewsList, latestTime, mainImageHref} = await parseLiveNews(browser, news.articleHref);
         news.liveNewsList = liveNewsList;
         news.publishTime = latestTime;
-        news.newsType = NewsTypes.CardWithImageAndLive
+        if (news.imageHref === undefined) {
+            news.imageHref = mainImageHref;
+        }
+        news.newsType = NewsTypes.CardWithImageAndLive;
     }
     return news;
 }

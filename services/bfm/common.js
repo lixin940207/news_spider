@@ -79,23 +79,24 @@ parseLiveNews = async (browser, url) => {
     const liveNewsList = await Promise.all(liveElementList.map(async element => {
         let liveTitle;
         let date;
+        let timeText;
         if (await ifSelectorExists(element, '.live_block_title')){
             liveTitle = processStr(await element.$eval('.live_block_title', node => node.innerText));
-            const timeText = await element.$eval('.content_live_datetime time', node=>node.innerText)
-            if (timeText.includes(' à ')){
-                date = new Date(moment(timeText.split(' à ')[0], "DD/MM"));
-                date.setHours(Number(timeText.split(' à ')[1].split(':')[0]));
-                date.setMinutes(Number(timeText.split(' à ')[1].split(':')[1]));
-            }else{
-                date = new Date();
-                date.setHours(Number(timeText.split(':')[0]));
-                date.setMinutes(Number(timeText.split(':')[1]));
-            }
+            timeText = await element.$eval('.content_live_datetime time', node=>node.innerText)
+
         } else if(await ifSelectorExists(element, '.content_post .subheading')){
-            liveTitle = processStr(await element.$eval('.action_header .action_minutes', node => node.innerText) +
-                (await element.$eval('.content_post .subheading', node=>node.innerText)));
+            liveTitle = processStr(await element.$eval('.content_post .subheading', node=>node.innerText));
+            timeText = await element.$eval('span[class="action_minutes post_date"]', node=>node.innerText)
+        }
+
+        if (timeText.includes(' à ')){
+            date = new Date(moment(timeText.split(' à ')[0], "DD/MM"));
+            date.setHours(Number(timeText.split(' à ')[1].split(':')[0]));
+            date.setMinutes(Number(timeText.split(' à ')[1].split(':')[1]));
         }else{
-            console.log(url);
+            date = new Date();
+            date.setHours(Number(timeText.split(':')[0]));
+            date.setMinutes(Number(timeText.split(':')[1]));
         }
         return {
             liveTitle: {ori: liveTitle,

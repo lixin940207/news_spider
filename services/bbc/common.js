@@ -1,5 +1,5 @@
 const moment = require('moment-timezone');
-const {processStr} = require("../utils/util");
+const {processStr, getImageHref} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
@@ -13,6 +13,10 @@ parseLiveNews = async (browser, url)=>{
         timeout: 0
     });
     await pageLive.waitForSelector('div#lx-stream', {timeout: 0});
+    let mainImageHref;
+    if (await ifSelectorExists(pageLive, 'div.lx-c-session-header__image-wrapper img')) {
+        mainImageHref = await getImageHref(pageLive, 'div.lx-c-session-header__image-wrapper img');
+    }
     const liveElementList = await pageLive.$$('li[class*="lx-stream__post-container"] article');
     let liveNewsList = await Promise.all(liveElementList.map(async element => {
             if (!(await ifSelectorExists(element, 'header'))) return;
@@ -35,7 +39,7 @@ parseLiveNews = async (browser, url)=>{
                 liveContent: {
                     articleHref: url,
                     bodyBlockList: await getBodyBlockList(element,
-                        'div.lx-stream-post-body img, ' +
+                        'div.lx-stream-post-body div.lx-media-asset__image img, ' +
                         'div.lx-stream-post-body p, ' +
                         'div.lx-stream-post-body ul')
                 }
@@ -44,7 +48,7 @@ parseLiveNews = async (browser, url)=>{
     ));
     liveNewsList = liveNewsList.filter(i=>i!==undefined);
     const latestTime = new Date(Math.max.apply(null,liveNewsList.map(i=>i.liveTime)))
-    return {liveNewsList, latestTime}
+    return {liveNewsList, latestTime, mainImageHref}
 }
 
 parseArticle = async (browser, url)=>{

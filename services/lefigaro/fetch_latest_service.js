@@ -32,12 +32,10 @@ crawl = async () => {
     const elementList = await page.$$('section.fig-main section[class*="fig-ensemble"],' +
         'section.fig-main article[class*="fig-profile"]')
 
-    let promises = [];
+    const allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const allNewsResult = await Promise.all(promises);
     logger.info('LeFigaro parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.flat().map(element=>{
         element.platform = 'LeFigaro';
@@ -142,7 +140,8 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithTitleWide;
-    news.isLive = (await element.$$('fig-live-mark')).length > 0
+    news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'));
+    news.isLive = news.articleHref.includes('/live/');
     news.title.ori = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
     news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')){
@@ -151,7 +150,6 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     news.categories = determineCategory(news.title.ori);
-    news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'));
     let hasImage = false;
     if((await element.$$('img')).length > 0){
         const imageDataSrc = (await element.$eval('img', node => node.getAttribute('srcset') || node.getAttribute('data-srcset'))).split(' ');
@@ -163,9 +161,14 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
         news.newsType = NewsTypes.CardWithImage;
         hasImage = true;
     }
-
-    news.article = await parseArticle(browser, news.articleHref);
-    news.publishTime = news.article.publishTime;
+    if (news.isLive) {
+        const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
+        news.liveNewsList = liveNewsList;
+        news.publishTime = latestTime;
+    } else {
+        news.article = await parseArticle(browser, news.articleHref);
+        news.publishTime = news.article.publishTime;
+    }
     if (hasRelated) {
         const relatedElementList = await element.$$('ul li');
         news.relatedNewsList = await Promise.all(relatedElementList.map(async node => {
@@ -178,6 +181,11 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
             }
         }));
         news.newsType = hasImage?NewsTypes.CardWithImageAndSubtitle:NewsTypes.CardWithList;
+    }
+    if (news.isLive && hasImage) {
+        news.newsType = NewsTypes.CardWithImageAndLive
+    } else if (news.isLive) {
+        news.newsType = NewsTypes.CardWithLive;
     }
     return news;
 }

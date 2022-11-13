@@ -78,9 +78,22 @@ async function getBodyBlockList(element, selectors, translate=true) {
                         ori: n.innerText,
                     }
                 }else if(n.tagName === 'IMG'){
+                    let srcs = [];
+                    srcs.push(n.getAttribute('srcset'));
+                    srcs.push(n.getAttribute('data-srcset'));
+                    srcs.push(n.getAttribute('data-src'));
+                    srcs.push(n.getAttribute('src'));
+                    srcs.push(n.getAttribute('data-url'));
+                    const src = srcs.filter(i=> i!==null && i!==undefined && i.startsWith('http'))[0];
+                    if (src === undefined){
+                        return undefined;
+                    }
+                    src.replace('{width}', '400');
+                    const srcSplit = src.split(/[\s,;]+/)
+                    const srcSplitFilter = srcSplit.filter(i=>i.length>5);
                     return{
                         type: 'img',
-                        src: (n.getAttribute('srcset') || n.getAttribute('data-srcset') || n.getAttribute('src')).split(/[\s,]+/)[0],
+                        src: srcSplitFilter[srcSplitFilter.length - 1].replace('{width}', '400'),
                     }
                 }else if(n.tagName === 'UL'){
                     let liList = [];

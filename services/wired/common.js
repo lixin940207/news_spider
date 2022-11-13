@@ -34,10 +34,9 @@ parseArticle = async (browser, url) => {
     article.publishTime = new Date(await pageContent.$eval('div[data-testid="ContentHeaderTitleBlockWrapper"] time[data-testid="ContentHeaderPublishDate"]', node=>node.innerText));
 
     article.bodyBlockList = await getBodyBlockList(pageContent,
-        'div.body.body__container.article__body div.body__inner-container p,' +
-        // 'div.body.body__container.article__body div.body__inner-container div[aria-label="social media post"],' +
-        'div.body.body__container.article__body div.body__inner-container figure.asset-embed');
-
+        'div.grid-layout__content div.body.body__container.article__body div.body__inner-container p,' +
+        'div.grid-layout__content div.body.body__container.article__body div.body__inner-container figure.asset-embed picture img');
+    article.bodyBlockList = article.bodyBlockList.filter(block => block.ori !== 'FEATURED VIDEO' || block.ori !== '');
     return article;
 }
 

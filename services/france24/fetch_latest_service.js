@@ -6,7 +6,7 @@ const schedule = require("node-schedule");
 const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.France24URL;
 const logger = require('../../config/logger');
-const {processStr, getImageHref} = require("../utils/util");
+const {processStr, getImageHref, ifSelectorExists} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getDisplayOrder} = require("../utils/util");
@@ -59,7 +59,7 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
 
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
-    if (news.articleHref.split('/')[4] === encodeURIComponent('vidéo')) {
+    if ([encodeURIComponent('vidéo'), encodeURIComponent('émissions')].includes(news.articleHref.split('/')[4])) {
         return undefined;
     }
     news.title.ori = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
@@ -70,6 +70,18 @@ parseNews = async (element, idx) => {
     news.newsType = NewsTypes.CardWithImage;
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
+
+    if (await ifSelectorExists(element, 'div.m-list-main-related')) {
+        const relatedNewsElements = await element.$$('div.m-list-main-related a.m-list-main-related__article');
+        news.relatedNewsList = await Promise.all(relatedNewsElements.map(async element => {
+            const rNews = new NewsObject();
+            rNews.articleHref = BASE_URL + await element.evaluate(node => node.getAttribute('href'));
+            rNews.title.ori = await element.evaluate(node=>node.innerText);
+            rNews.article = await goToArticlePageAndParse(browser, rNews.articleHref);
+            return rNews;
+        }));
+        news.newsType = NewsTypes.CardWithImageAndSubtitle;
+    }
     return news;
 }
 

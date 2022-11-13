@@ -77,6 +77,9 @@ parseNews = async (element, idx, category) => {
     if (!news.articleHref.startsWith(TECH_URL)) {
         news.articleHref = TECH_URL + news.articleHref;
     }
+    if (news.articleHref.includes('#intcid=')) {
+        news.articleHref = news.articleHref.substring(0, news.articleHref.indexOf('#intcid=')) + '/';
+    }
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
 

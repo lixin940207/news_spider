@@ -6,6 +6,7 @@ const {ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 const BASE_URL = "https://www.nytimes.com/";
 
 
@@ -13,17 +14,21 @@ parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'domcontentloaded', timeout: 0});
     try{
-        await pageLive.waitForSelector('article', {timeout: 0});
+        await pageLive.waitForSelector('article[data-testid="live-blog-content"]', {timeout: 0});
     }catch (e) {
-        logger.error(url+'has problem!')
+        logger.error(url+' has problem!')
     }
     const liveTime = new Date(await pageLive.$eval('time[datetime]', node=>node.getAttribute('datetime')));
-    const liveElementList = await pageLive.$$('article div[data-test-id="live-blog-post"]');
+    const liveElementList = await pageLive.$$('article[data-testid="live-blog-content"] section[id="live-feed-items"] div[data-testid="live-blog-post"]');
+        // 'article[data-testid="live-blog-content"] section[id="live-feed-items"] div[data-testid="reporter-update"]');
     const liveNewsList = await Promise.all(liveElementList.map(async element => {
-        const liveTitle = processStr(await element.$eval('[itemprop="headline"]', node => node.innerText));
-        const liveHref = url + await element.$eval('[itemprop="headline"] a', node => node.getAttribute('href'));
+        const liveTitle = processStr(await element.$eval('div.live-blog-post-headline', node => node.innerText));
+        const liveHref = url + await element.$eval('div.live-blog-post-headline a', node => node.getAttribute('href'));
         return {
-            liveTitle: {ori: liveTitle, cn: await pushToQueueAndWaitForTranslateRes(liveTitle)},
+            liveTitle: {
+                ori: liveTitle,
+                cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(liveTitle): ""
+            },
             liveHref,
             liveContent: {
                 articleHref: liveHref,
@@ -33,7 +38,14 @@ parseLiveNews = async (browser, url) => {
             }
         }
     }))
-    return {publishTime: liveTime, liveNewsList};
+    let mainImageHref;
+    if (await ifSelectorExists(pageLive, 'header.live-blog-header figure img')) {
+        mainImageHref = await getImageHref(pageLive, 'header.live-blog-header figure img');
+    } else {
+        const headerHTML = await pageLive.$eval('header.live-blog-header', node=>node.outerHTML);
+        mainImageHref = headerHTML.match(/src\":\"([a-zA-Z0-9\.\/\:\-]+\.jpg)/)[1];
+    }
+    return {mainImageHref, publishTime: liveTime, liveNewsList};
 }
 
 parseArticle = async (browser, url)=>{
@@ -104,10 +116,10 @@ goToArticleArticlePageAndParse = async (browser, url) => {
             console.log(await headerElement.evaluate(node=>node.outerHTML))
         }
         article.title.ori = processStr(await headerElement.$eval('h1', node => node.innerText));
-        article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+        article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
         if ((await headerElement.$$('p[id="article-summary"]')).length > 0) {
             article.summary.ori = processStr(await headerElement.$eval('p[id="article-summary"]', node => node.innerText));
-            article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+            article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
         }
         article.headImageHref = await getImageHref(headerElement, 'div[data-testid="photoviewer-wrapper"] figure picture img');
         if ((await headerElement.$$('time[datetime]')).length > 0) {
@@ -115,10 +127,10 @@ goToArticleArticlePageAndParse = async (browser, url) => {
         }
     } else{
         article.title.ori = processStr(await pageContent.$eval('h1', node => node.innerText));
-        article.title.cn = await pushToQueueAndWaitForTranslateRes(article.title.ori);
+        article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
         if ((await pageContent.$$('p[id="article-summary"]')).length > 0) {
             article.summary.ori = processStr(await pageContent.$eval('p[id="article-summary"]', node => node.innerText));
-            article.summary.cn = await pushToQueueAndWaitForTranslateRes(article.summary.ori);
+            article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
         }
         article.headImageHref = await getImageHref(pageContent, 'div[data-testid="photoviewer-wrapper"] figure picture img');
         if ((await pageContent.$$('time[datetime]')).length > 0) {
