@@ -83,14 +83,14 @@ parseNews = async (element, idx) => {
 }
 
 
-// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl()
-    .then(s => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
+schedule.scheduleJob("9 * * * *", crawl);
+// crawl()
+//     .then(s => process.exit())
+//     .catch(r => {
+//             logger.error(r);
+//             process.exit(1);
+//         }
+//     );
 
 
 

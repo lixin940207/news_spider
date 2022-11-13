@@ -93,22 +93,14 @@ parseNews = async (element, idx, category) => {
 }
 
 
-// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-// crawl(CHINA_URL, "China")
+schedule.scheduleJob("45 * * * *", () => crawl(TECH_URL, "Tech"));
+// crawl(TECH_URL, "Tech")
 //     .then(s => process.exit())
 //     .catch(r => {
 //             logger.error(r);
 //             process.exit(1);
 //         }
 //     );
-
-crawl(TECH_URL, "Tech")
-    .then(s => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
 
 
 

@@ -152,14 +152,14 @@ getCommonPart = async (element) => {
     return news;
 }
 
-// schedule.scheduleJob(CRAWL_TIME_INTERVAL, crawl);
-crawl()
-    .then(s => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
+schedule.scheduleJob("3 * * * *", crawl);
+// crawl()
+//     .then(s => process.exit())
+//     .catch(r => {
+//             logger.error(r);
+//             process.exit(1);
+//         }
+//     );
 
 
 
