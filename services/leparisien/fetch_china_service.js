@@ -33,14 +33,11 @@ crawl = async () => {
     logger.info('loaded')
     const elementList = (await page.$$('#fusion-app [class*="story-preview"]'))
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const allNewsResult = await Promise.all(promises)
     const newsResult = allNewsResult.filter(i=>i!==undefined);
-    // console.log(newsResult.map(i=>i.publishTime));
 
     logger.info('LeParisien parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {

@@ -32,13 +32,11 @@ crawl = async () => {
     logger.info('LeMonde loaded')
     const elementList = await page.$$('section[class*="zone--homepage"] > section > div[class*="article"]')
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
     }
-    let allNewsResult = await Promise.all(promises);
-    allNewsResult = allNewsResult.flat();
+    allNewsResult = allNewsResult.flat().filter(news => news !== undefined);
     allNewsResult = allNewsResult.map(element=>{
         element.platform = 'LeMonde';
         element.displayOrder = element.ranking * 0.01 - current_ts;
@@ -54,7 +52,10 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
-    // objects.category = objects.articleHref.split('/')[3];
+    if (news.articleHref.split('/')[4] === 'visuel') {
+        return undefined;
+    }
+        // objects.category = objects.articleHref.split('/')[3];
     news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
     news.categories = determineCategory(news.title.ori);
     news.newsType = NewsTypes.CardWithTitleWide;
@@ -79,6 +80,9 @@ parseNews = async (element, idx) => {
     } else {
         news.article = await goToArticlePageAndParse(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
+        if (news.imageHref === undefined) {
+            news.imageHref = news.article.mainImageHref;
+        }
     }
     news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     if (await ifSelectorExists(element,'ul[class*="article__related"]')) {
@@ -176,7 +180,7 @@ parseNews = async (element, idx) => {
 crawl()
     .then(s => process.exit())
     .catch(r => {
-            logger.error(r);
+            logger.error(r.stack);
             process.exit(1);
         }
     );

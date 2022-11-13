@@ -1,4 +1,4 @@
-const {ifSelectorExists} = require("../utils/util");
+const {ifSelectorExists, getImageHref} = require("../utils/util");
 const moment = require("moment");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {processStr} = require("../utils/util");
@@ -37,10 +37,10 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
             article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
             dateHeader = await pageContent.$eval('article#Longform .article__heading .meta__publisher', node => node.innerText);
             article.bodyBlockList = await getBodyBlockList(pageContent,
-                'article#longform [class*="article__content"] [class*="article__paragraph"], ' +
-                'article#longform [class*="article__content"] [class*="article__sub-title"], ' +
-                'article#longform [class*="article__content"] blockquote,' +
-                'article#longform [class*="article__content"] figure img')
+                'article#Longform section.article__content p.article__paragraph, ' +
+                'article#Longform section.article__content [class*="article__sub-title"], ' +
+                'article#Longform section.article__content blockquote,' +
+                'article#Longform section.article__content figure img')
         } else {
             article.title.ori = processStr(await pageContent.$eval('header[class*="article__header"] .article__title', node => node.innerText));
             article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
@@ -85,8 +85,8 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
 module.exports.parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'load'});
-    await pageLive.waitForSelector('section[class*="sirius-live"]');
-    const liveElementList = await pageLive.$$('section#post-container > section.post.post__live-container');
+    await pageLive.waitForSelector('section.post__live-section.post-container');
+    const liveElementList = await pageLive.$$('section.post__live-section.post-container > section.post.post__live-container');
     let liveNewsList =  await Promise.all(liveElementList.map(async element => {
         let liveTitle = '';
         if (!(await ifSelectorExists(element,'[class*="post__live-container--title"]'))) {

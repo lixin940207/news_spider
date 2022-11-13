@@ -37,13 +37,10 @@ crawl = async () => {
         'div[aria-label="Top Stories"]  div[class*="nw-c-top-stories__tertiary-items"]')
     logger.info('BBC-got dom.')
 
-    // let promises = [];
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
         allNewsResult.push(await parseNews(news_list[i], i));
-        // promises.push(p);
     }
-    // const allNewsResult = await Promise.all(promises);
     logger.info('BBC-parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = 'BBC';

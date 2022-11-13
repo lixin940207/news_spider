@@ -34,12 +34,10 @@ crawl = async () => {
     logger.info('loaded')
     const elementList = (await page.$$('article[class*="une_item"], article[class*="duo_liste"]'))
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const allNewsResult = await Promise.all(promises);
     const newsResult = allNewsResult.filter(i=>i!==undefined);
 
     logger.info('BFM parsing all objects finish.')

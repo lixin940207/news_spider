@@ -65,6 +65,10 @@ crawl = async (URL, category) => {
 
 
 parseNews = async (element, idx, category) => {
+    if (await ifSelectorExists(element, '.article__event-title')) {
+        return undefined;
+    }
+
     const news = new NewsObject();
     news.ranking = idx
     if (await ifSelectorExists(element, 'header.post-block__title .article__event-title')) {

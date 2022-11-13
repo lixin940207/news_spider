@@ -33,12 +33,11 @@ crawl = async () => {
         return await node.$$('div[class*="m-item-list-article"]')
     }))).flat();
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i))
     }
-    const allNewsResult = (await Promise.all(promises)).filter(i=>i!==undefined);
+    allNewsResult = allNewsResult.filter(i=>i!==undefined);
 
     logger.info('France24 parsing all objects finish.')
     await News.bulkUpsertNews(allNewsResult.map(element=>{

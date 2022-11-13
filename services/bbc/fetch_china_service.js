@@ -43,13 +43,10 @@ crawl = async (URL, category) => {
         category,
     })
 
-    let promises = [];
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
         allNewsResult.push(await parseNews(news_list[i], i+1, category));
-        // promises.push(p);
     }
-    // const allNewsResult = (await Promise.all(promises)).filter(i=>i!==undefined);
     allNewsResult = allNewsResult.filter(i => i!==undefined);
     logger.info('BBC-parsed all objects.', {
         category

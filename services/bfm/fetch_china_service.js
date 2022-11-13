@@ -34,12 +34,10 @@ crawl = async () => {
     logger.info('BFM loaded')
     const elementList = await page.$$('article[class*="content_item content_type"]');
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const allNewsResult = await Promise.all(promises);
     const newsResult = allNewsResult.filter(i=>i!==undefined);
     console.log(newsResult.map(i=>i.publishTime));
 

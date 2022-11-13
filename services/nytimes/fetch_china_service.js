@@ -35,15 +35,12 @@ crawl = async () => {
         'div#sectionWrapper ul.autoList > li[class*="autoListStory"]');
     logger.info('NYTimes got dom.');
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        let p = parseNews(news_list[i], i+1);
-        promises.push(p);
+        allNewsResult.push(await parseNews(news_list[i], i+1));
     }
 
-    const allNewsResult = await Promise.all(promises);
     logger.info('NYTimes-parsed all objects.')
-    console.log(allNewsResult.map(i=>i.publishTime));
     await News.bulkUpsertNews(allNewsResult.map(element=>{
         element.platform = "NYTimes";
         return element;

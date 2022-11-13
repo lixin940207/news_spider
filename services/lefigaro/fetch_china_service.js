@@ -27,16 +27,11 @@ crawl = async () => {
     logger.info('loaded');
     const elementList = await page.$$('section.fig-main article.fig-profile')
 
-    // let promises = [];
     let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
         allNewsResult.push(await parseNews(elementList[i], i));
-        // promises.push(p)
-        // await p;
     }
-    // const allNewsResult = await Promise.all(promises);
 
-    // console.log(allNewsResult.map(i=>i.publishTime));
     logger.info('LeFigaro parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.flat()
         .filter(element => element !== undefined)

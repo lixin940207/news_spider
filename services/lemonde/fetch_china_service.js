@@ -29,13 +29,10 @@ crawl = async () => {
     logger.info('loaded')
     const elementList = await page.$$('section#river div.thread')
 
-    let promises = [];
+    let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        let p = parseNews(elementList[i], i);
-        promises.push(p)
+        allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const allNewsResult = await Promise.all(promises);
-    // console.log(allNewsResult.map(i=>i.publishTime));
     logger.info('LeMonde parsing all objects finish.')
     await News.bulkUpsertNews(allNewsResult.map(element=>{
         element.platform = "LeMonde";
