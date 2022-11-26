@@ -1,10 +1,7 @@
 FROM node:16.13.2
-ENV ENV=production
-
-ARG Version=1.0.0
+ENV ENV=PRODUCTION
 
 LABEL name="news_spider"
-LABEL version=$Version
 
 RUN mkdir /news_spider
 COPY ./package.json /news_spider/
