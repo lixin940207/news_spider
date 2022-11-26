@@ -19,6 +19,7 @@ crawl = async () => {
     logger.info('LeFigaro china objects start crawling.')
     browser = await puppeteer.launch({
         timeout:0,
+        args: ['--no-sandbox']
     });
     const page = await browser.newPage();
     await page.goto(URL, {waitUntil: 'load'});
@@ -70,13 +71,14 @@ parseNews = async (element, idx) => {
     return news;
 }
 
-
-schedule.scheduleJob("21 * * * *", crawl);
-// crawl()
-//     .then(s => process.exit())
-//     .catch(r => {
-//             logger.error(r);
-//             process.exit(1);
-//         }
-//     );
-
+if (process.env.ENV === 'PRODUCTION') {
+    schedule.scheduleJob("21 * * * *", crawl);
+} else {
+    crawl()
+        .then(s => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
+}

@@ -52,10 +52,9 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
-    if (news.articleHref.split('/')[4] === 'visuel') {
+    if (['visuel', 'video'].includes(news.articleHref.split('/')[4])) {
         return undefined;
     }
-        // objects.category = objects.articleHref.split('/')[3];
     news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
     news.categories = determineCategory(news.title.ori);
     news.newsType = NewsTypes.CardWithTitleWide;
@@ -70,7 +69,12 @@ parseNews = async (element, idx) => {
         hasImage = true;
         news.newsType = NewsTypes.CardWithImage;
     }
-    news.isLive = (await element.$$('[class*="flag-live-cartridge"]')).length > 0;
+    if ((await element.evaluate(node=>node.getAttribute('class'))).includes('article--main')) {
+        const mainArticleWrapper = (await element.$$('a'))[0];
+        news.isLive = await ifSelectorExists(mainArticleWrapper, '[class*="flag-live-cartridge"]');
+    } else {
+        news.isLive = (await element.$$('[class*="flag-live-cartridge"]')).length > 0;
+    }
     if (news.isLive) {
         news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
         const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
@@ -175,15 +179,17 @@ parseNews = async (element, idx) => {
 
     return news;
 }
-
-schedule.scheduleJob("30 * * * *", crawl);
-// crawl()
-//     .then(s => process.exit())
-//     .catch(r => {
-//             logger.error(r.stack);
-//             process.exit(1);
-//         }
-//     );
+if (process.env.ENV === 'PRODUCTION') {
+    schedule.scheduleJob("30 * * * *", crawl);
+} else {
+    crawl()
+        .then(s => process.exit())
+        .catch(r => {
+                logger.error(r.stack);
+                process.exit(1);
+            }
+        );
+}
 
 
 

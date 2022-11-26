@@ -79,12 +79,14 @@ parseNews = async (element, idx, category) => {
     logger.info("parsed news ", news.title.ori);
 }
 
-
-schedule.scheduleJob("0 * * * *", () => crawl(CHINA_URL, "China"));
-// crawl(CHINA_URL, "China")
-//     .then(s => process.exit())
-//     .catch(r => {
-//             logger.error(r);
-//             process.exit(1);
-//         }
-//     );
+if (process.env.ENV === 'PRODUCTION') {
+    schedule.scheduleJob("0 * * * *", () => crawl(CHINA_URL, "China"));
+} else {
+    crawl(CHINA_URL, "China")
+        .then(s => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
+}

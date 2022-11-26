@@ -1,5 +1,5 @@
 FROM node:16.13.2
-ENV NODE_ENV=production
+ENV ENV=production
 
 ARG Version=1.0.0
 

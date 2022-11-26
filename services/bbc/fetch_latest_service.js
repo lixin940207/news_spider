@@ -3,7 +3,7 @@ const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
 const URL = require('../../config/config').ORIGINAL_URLS.BBCURL;
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require('../../config/config');
+const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {processStr} = require("../utils/util");
@@ -152,15 +152,14 @@ getCommonPart = async (element) => {
     return news;
 }
 
-schedule.scheduleJob("3 * * * *", crawl);
-// crawl()
-//     .then(s => process.exit())
-//     .catch(r => {
-//             logger.error(r);
-//             process.exit(1);
-//         }
-//     );
-
-
-
-
+if (process.env.ENV === 'PRODUCTION') {
+    schedule.scheduleJob("3 * * * *", crawl);
+} else {
+    crawl()
+        .then(s => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
+}

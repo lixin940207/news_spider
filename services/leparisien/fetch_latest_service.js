@@ -79,17 +79,14 @@ parseNews = async (element, idx) => {
     return news;
 }
 
-
-schedule.scheduleJob("36 * * * *", crawl);
-// crawl()
-//     .then(s => process.exit())
-//     .catch(r => {
-//             logger.error(r);
-//             process.exit(1);
-//         }
-//     );
-
-
-
-
-
+if (process.env.ENV === 'PRODUCTION') {
+    schedule.scheduleJob("36 * * * *", crawl);
+} else {
+    crawl()
+        .then(s => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
+}
