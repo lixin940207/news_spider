@@ -54,6 +54,11 @@ function BaseSchema() {
         relatedNewsList: [{
             title: textSchema,
             article: articleSchema}],
+        expireAt: {
+            type: Date,
+            default: Date.now,
+            index: { expires: '5d' }
+        }
     });
 }
 util.inherits(BaseSchema, Schema);

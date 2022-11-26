@@ -166,6 +166,7 @@ parseNews = async (element, idx) => {
                         ranking: idx,
                         articleHref,
                         newsType: NewsTypes.CardWithLive,
+                        isLive: true,
                         liveNewsList,
                         publishTime: latestTime,
                     }

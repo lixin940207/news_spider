@@ -1,13 +1,16 @@
 const BaseSchema = require('./base_schema');
 const mongoose = require('mongoose');
 
-
-const NewsModel = mongoose.model('news', new BaseSchema(
+newsSchema = new BaseSchema(
     {
         platform: {type: String, required: true}
     }, {
         timestamps: true
-    }));
+    });
+
+newsSchema.index({ createdAt: 1 }, { expireAfterSeconds: 43200 });
+
+const NewsModel = mongoose.model('news', newsSchema);
 
 async function list() {
     return await NewsModel.find({});
