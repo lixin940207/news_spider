@@ -1,0 +1,224 @@
+{"level":"info","message":"LeParisien new crawling start.27820710"}
+{"code":"ENOTFOUND","hostname":"_mongodb._tcp.127.0.0.1","level":"error","syscall":"querySrv"}
+{"level":"info","message":"LeParisien new crawling start.27820712"}
+{"level":"error","name":"MongoParseError"}
+{"level":"info","message":"LeParisien got to the page."}
+{"level":"info","message":"LeParisien loaded"}
+{"level":"info","message":"LeParisien new crawling start.27820712"}
+{"level":"error","name":"MongoError"}
+{"level":"info","message":"LeParisien got to the page."}
+{"level":"info","message":"LeParisien loaded"}
+{"level":"info","message":"LeParisien parsing all objects finish."}
+{"level":"error"}
+{"level":"info","message":"LeParisien new crawling start.27820714"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeParisien got to the page."}
+{"level":"info","message":"LeParisien loaded"}
+{"level":"info","message":"LeParisien new crawling start.27820714"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeParisien got to the page."}
+{"level":"info","message":"LeParisien loaded"}
+{"level":"info","message":"LeParisien new crawling start.27820720"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeParisien got to the page."}
+{"level":"info","message":"LeParisien loaded"}
+{"level":"info","message":"LeParisien parsing all objects finish."}
+{"level":"info","message":"LeParisien inserting into db finish."}
+{"level":"info","message":"LeMonde new crawling start.27824252"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"error","message":"TimeoutError: Waiting for selector `section.post__live-section.post-container` failed: Waiting failed: 30000ms exceeded\n    at Timeout.<anonymous> (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/WaitTask.js:64:32)\n    at listOnTimeout (internal/timers.js:557:17)\n    at processTimers (internal/timers.js:500:7)"}
+{"level":"info","message":"LeMonde new crawling start.27824254"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"LeMonde new crawling start.27824257"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"LeMonde new crawling start.27824280"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"LeMonde new crawling start.27824289"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"error","message":"TypeError: Cannot read property '0' of undefined\n    at parseNews (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:77:62)\n    at processTicksAndRejections (internal/process/task_queues.js:95:5)\n    at async crawl (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:37:28)"}
+{"level":"info","message":"LeMonde new crawling start.27824292"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"error","message":"TypeError: selector.startsWith is not a function\n    at getQueryHandlerAndSelector (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/QueryHandler.js:184:30)\n    at ElementHandle.$ (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/ElementHandle.js:117:100)\n    at parseNews (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:74:50)\n    at processTicksAndRejections (internal/process/task_queues.js:95:5)\n    at async crawl (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:37:28)"}
+{"level":"info","message":"LeMonde new crawling start.27824292"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"error","message":"TypeError: selector.startsWith is not a function\n    at getQueryHandlerAndSelector (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/QueryHandler.js:184:30)\n    at ElementHandle.$ (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/ElementHandle.js:117:100)\n    at parseNews (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:74:50)\n    at processTicksAndRejections (internal/process/task_queues.js:95:5)\n    at async crawl (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:37:28)"}
+{"level":"info","message":"LeMonde new crawling start.27824295"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"error","message":"TypeError: selector.startsWith is not a function\n    at getQueryHandlerAndSelector (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/QueryHandler.js:184:30)\n    at ElementHandle.$ (/Users/lixin/Projects/BreadNews/news_spider/node_modules/puppeteer-core/lib/cjs/puppeteer/common/ElementHandle.js:117:100)\n    at parseNews (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:74:50)\n    at processTicksAndRejections (internal/process/task_queues.js:95:5)\n    at async crawl (/Users/lixin/Projects/BreadNews/news_spider/services/lemonde/fetch_latest_service.js:37:28)"}
+{"level":"info","message":"LeMonde new crawling start.27824306"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"LeMonde new crawling start.27824313"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"parsed news: "}
+{"level":"info","message":"LeMonde new crawling start.27824315"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/taiwan-comment-l-armee-chinoise-planifie-l-invasion_6151704_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/live/2022/11/26/tunisie-australie-en-direct-suivez-le-match-de-la-coupe-du-monde-2022_6151723_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/sciences/article/2022/11/26/la-nasa-annonce-que-le-vaisseau-orion-s-est-place-en-orbite-lunaire_6151746_1650684.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/du-ps-a-eelv-la-nupes-a-l-epreuve-des-congres_6151735_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/afrique/article/2022/11/25/coupe-du-monde-le-football-africain-possede-de-tres-bons-gardiens_6151679_3212.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/entre-les-anglais-et-la-politique-un-mur-de-defiance-le-gouvernement-ne-sait-meme-pas-qu-on-existe_6151712_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/25/comme-dua-lipa-qui-a-snobe-le-qatar-ces-stars-ont-boude-les-cachets_6151632_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/l-affaire-sofiane-bennacer-embarrasse-le-cinema-francais_6151736_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/societe/article/2022/11/26/evaluations-nationales-de-cp-ce1-et-6e-les-eleves-les-plus-faibles-reduisent-l-ecart_6151729_3224.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/rattrape-par-l-affaire-mckinsey-macron-poursuit-sa-politique-de-lutte-contre-les-violences-faites-aux-femmes_6151697_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/argent/article/2022/11/26/immobilier-a-la-baule-une-demande-toujours-aussi-forte_6151707_1657007.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-styles/article/2022/11/25/des-bords-de-seine-a-ceux-de-la-marne-cinq-balades-franciliennes-au-fil-de-l-eau_6151625_4497319.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/article/2022/11/26/coupe-du-monde-2022-objectif-huitiemes-pour-les-bleus-opposes-au-danemark_6151708_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/planete/video/2022/11/26/sapin-de-noel-naturel-ou-artificiel-lequel-est-plus-ecologique_5226920_3245.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/de-berlin-a-paris-elisabeth-borne-jongle-avec-les-crises_6151695_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/25/migrations-les-vingt-sept-approuvent-un-plan-d-urgence-pour-eviter-de-reproduire-la-crise-de-l-ocean-viking_6151689_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/idees/article/2022/11/24/femmes-exilees-il-y-a-un-angle-mort-dans-la-procedure-d-asile-actuelle-la-violence-subie-sur-le-parcours-migratoire_6151374_3232.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/livres/article/2022/11/26/la-mer-a-boire-lost-lad-london-1629-l-arabe-du-futur-6-dix-bd-a-decouvrir_6151691_3260.html"}
+{"level":"info","message":"LeMonde new crawling start.27824320"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/taiwan-comment-l-armee-chinoise-planifie-l-invasion_6151704_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/live/2022/11/26/tunisie-australie-en-direct-suivez-le-match-de-la-coupe-du-monde-2022_6151723_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/sciences/article/2022/11/26/la-nasa-annonce-que-le-vaisseau-orion-s-est-place-en-orbite-lunaire_6151746_1650684.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/du-ps-a-eelv-la-nupes-a-l-epreuve-des-congres_6151735_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/afrique/article/2022/11/25/coupe-du-monde-le-football-africain-possede-de-tres-bons-gardiens_6151679_3212.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/entre-les-anglais-et-la-politique-un-mur-de-defiance-le-gouvernement-ne-sait-meme-pas-qu-on-existe_6151712_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/25/comme-dua-lipa-qui-a-snobe-le-qatar-ces-stars-ont-boude-les-cachets_6151632_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/l-affaire-sofiane-bennacer-embarrasse-le-cinema-francais_6151736_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/societe/article/2022/11/26/evaluations-nationales-de-cp-ce1-et-6e-les-eleves-les-plus-faibles-reduisent-l-ecart_6151729_3224.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/rattrape-par-l-affaire-mckinsey-macron-poursuit-sa-politique-de-lutte-contre-les-violences-faites-aux-femmes_6151697_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/argent/article/2022/11/26/immobilier-a-la-baule-une-demande-toujours-aussi-forte_6151707_1657007.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-styles/article/2022/11/25/des-bords-de-seine-a-ceux-de-la-marne-cinq-balades-franciliennes-au-fil-de-l-eau_6151625_4497319.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/article/2022/11/26/coupe-du-monde-2022-objectif-huitiemes-pour-les-bleus-opposes-au-danemark_6151708_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/de-berlin-a-paris-elisabeth-borne-jongle-avec-les-crises_6151695_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/25/migrations-les-vingt-sept-approuvent-un-plan-d-urgence-pour-eviter-de-reproduire-la-crise-de-l-ocean-viking_6151689_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/idees/article/2022/11/24/femmes-exilees-il-y-a-un-angle-mort-dans-la-procedure-d-asile-actuelle-la-violence-subie-sur-le-parcours-migratoire_6151374_3232.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/livres/article/2022/11/26/la-mer-a-boire-lost-lad-london-1629-l-arabe-du-futur-6-dix-bd-a-decouvrir_6151691_3260.html"}
+{"level":"info","message":"LeMonde parsing all objects finish."}
+{"level":"info","message":"LeMonde inserting into db finish."}
+{"level":"info","message":"LeMonde new crawling start.27824328"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/taiwan-comment-l-armee-chinoise-planifie-l-invasion_6151704_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/live/2022/11/26/tunisie-australie-en-direct-suivez-le-match-de-la-coupe-du-monde-2022_6151723_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/sciences/article/2022/11/26/la-nasa-annonce-que-le-vaisseau-orion-s-est-place-en-orbite-lunaire_6151746_1650684.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/du-ps-a-eelv-la-nupes-a-l-epreuve-des-congres_6151735_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/afrique/article/2022/11/25/coupe-du-monde-le-football-africain-possede-de-tres-bons-gardiens_6151679_3212.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/entre-les-anglais-et-la-politique-un-mur-de-defiance-le-gouvernement-ne-sait-meme-pas-qu-on-existe_6151712_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/25/comme-dua-lipa-qui-a-snobe-le-qatar-ces-stars-ont-boude-les-cachets_6151632_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/l-affaire-sofiane-bennacer-embarrasse-le-cinema-francais_6151736_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/societe/article/2022/11/26/evaluations-nationales-de-cp-ce1-et-6e-les-eleves-les-plus-faibles-reduisent-l-ecart_6151729_3224.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/rattrape-par-l-affaire-mckinsey-macron-poursuit-sa-politique-de-lutte-contre-les-violences-faites-aux-femmes_6151697_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/argent/article/2022/11/26/immobilier-a-la-baule-une-demande-toujours-aussi-forte_6151707_1657007.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-styles/article/2022/11/25/des-bords-de-seine-a-ceux-de-la-marne-cinq-balades-franciliennes-au-fil-de-l-eau_6151625_4497319.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/article/2022/11/26/coupe-du-monde-2022-objectif-huitiemes-pour-les-bleus-opposes-au-danemark_6151708_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/de-berlin-a-paris-elisabeth-borne-jongle-avec-les-crises_6151695_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/25/migrations-les-vingt-sept-approuvent-un-plan-d-urgence-pour-eviter-de-reproduire-la-crise-de-l-ocean-viking_6151689_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/idees/article/2022/11/24/femmes-exilees-il-y-a-un-angle-mort-dans-la-procedure-d-asile-actuelle-la-violence-subie-sur-le-parcours-migratoire_6151374_3232.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/livres/article/2022/11/26/la-mer-a-boire-lost-lad-london-1629-l-arabe-du-futur-6-dix-bd-a-decouvrir_6151691_3260.html"}
+{"level":"info","message":"LeMonde parsing all objects finish."}
+{"level":"info","message":"LeMonde inserting into db finish."}
+{"level":"info","message":"LeMonde new crawling start.27824339"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/ukraine-a-bakhmout-les-yeux-grand-ouverts-des-drones-dans-la-boucherie-de-la-guerre_6151699_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/taiwan-comment-l-armee-chinoise-planifie-l-invasion_6151704_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/live/2022/11/26/tunisie-australie-en-direct-suivez-le-match-de-la-coupe-du-monde-2022_6151723_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/25/le-renforcement-credo-de-la-securite-des-musees-parisiens-face-aux-actions-militantes-contre-les-tableaux_6151659_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/sciences/article/2022/11/26/la-nasa-annonce-que-le-vaisseau-orion-s-est-place-en-orbite-lunaire_6151746_1650684.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/26/ce-sera-broadway-a-paris-le-nouveau-lido-se-voit-deja-en-haut-de-l-affiche_6151710_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/25/comme-dua-lipa-qui-a-snobe-le-qatar-ces-stars-ont-boude-les-cachets_6151632_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/l-affaire-sofiane-bennacer-embarrasse-le-cinema-francais_6151736_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/societe/article/2022/11/26/evaluations-nationales-de-cp-ce1-et-6e-les-eleves-les-plus-faibles-reduisent-l-ecart_6151729_3224.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/rattrape-par-l-affaire-mckinsey-macron-poursuit-sa-politique-de-lutte-contre-les-violences-faites-aux-femmes_6151697_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/argent/article/2022/11/26/immobilier-a-la-baule-une-demande-toujours-aussi-forte_6151707_1657007.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-styles/article/2022/11/25/des-bords-de-seine-a-ceux-de-la-marne-cinq-balades-franciliennes-au-fil-de-l-eau_6151625_4497319.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/article/2022/11/26/coupe-du-monde-2022-objectif-huitiemes-pour-les-bleus-opposes-au-danemark_6151708_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/de-berlin-a-paris-elisabeth-borne-jongle-avec-les-crises_6151695_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/25/migrations-les-vingt-sept-approuvent-un-plan-d-urgence-pour-eviter-de-reproduire-la-crise-de-l-ocean-viking_6151689_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/idees/article/2022/11/24/femmes-exilees-il-y-a-un-angle-mort-dans-la-procedure-d-asile-actuelle-la-violence-subie-sur-le-parcours-migratoire_6151374_3232.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/livres/article/2022/11/26/la-mer-a-boire-lost-lad-london-1629-l-arabe-du-futur-6-dix-bd-a-decouvrir_6151691_3260.html"}
+{"level":"info","message":"LeMonde parsing all objects finish."}
+{"level":"info","message":"LeMonde inserting into db finish."}
+{"level":"info","message":"LeMonde new crawling start.27824350"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/ukraine-a-bakhmout-les-yeux-grand-ouverts-des-drones-dans-la-boucherie-de-la-guerre_6151699_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/taiwan-comment-l-armee-chinoise-planifie-l-invasion_6151704_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/live/2022/11/26/tunisie-australie-en-direct-suivez-le-match-de-la-coupe-du-monde-2022_6151723_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/affaire-du-chlordecone-un-non-lieu-attendu-indignation-aux-antilles_6151731_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/sciences/article/2022/11/26/la-nasa-annonce-que-le-vaisseau-orion-s-est-place-en-orbite-lunaire_6151746_1650684.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/26/ce-sera-broadway-a-paris-le-nouveau-lido-se-voit-deja-en-haut-de-l-affiche_6151710_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/25/comme-dua-lipa-qui-a-snobe-le-qatar-ces-stars-ont-boude-les-cachets_6151632_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/l-affaire-sofiane-bennacer-embarrasse-le-cinema-francais_6151736_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-perso/article/2022/11/26/fille-facile-ou-comment-la-rumeur-a-tue-shaina-15-ans_6151744_4497916.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/25/le-renforcement-credo-de-la-securite-des-musees-parisiens-face-aux-actions-militantes-contre-les-tableaux_6151659_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/beyonce-reussit-son-entree-a-normale-sup_6151748_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/societe/article/2022/11/26/evaluations-nationales-de-cp-ce1-et-6e-les-eleves-les-plus-faibles-reduisent-l-ecart_6151729_3224.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/du-ps-a-eelv-la-nupes-a-l-epreuve-des-congres_6151735_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/argent/article/2022/11/26/immobilier-a-la-baule-une-demande-toujours-aussi-forte_6151707_1657007.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-styles/article/2022/11/26/a-chevreloup-le-tour-du-monde-en-2-500-especes-d-arbres_6151720_4497319.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-perso/article/2022/11/25/familles-monoparentales-cinq-livres-jeunesse-qui-vous-ressemblent_6151626_4497916.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/livres/article/2022/11/20/au-programme-du-34e-forum-philo-le-monde-le-mans-les-25-26-et-27-novembre_6150740_3260.html"}
+{"level":"info","message":"LeMonde parsing all objects finish."}
+{"level":"info","message":"LeMonde inserting into db finish."}
+{"level":"info","message":"LeMonde new crawling start.27824353"}
+{"level":"info","message":"db connected!"}
+{"level":"info","message":"LeMonde got to the page."}
+{"level":"info","message":"LeMonde loaded"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/article/2022/11/26/au-qatar-une-coupe-des-mondes-tres-politique_6151739_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/international/article/2022/11/26/taiwan-comment-l-armee-chinoise-planifie-l-invasion_6151704_3210.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/affaire-du-chlordecone-un-non-lieu-attendu-indignation-aux-antilles_6151731_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/sciences/article/2022/11/26/la-nasa-annonce-que-le-vaisseau-orion-s-est-place-en-orbite-lunaire_6151746_1650684.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/football/live/2022/11/26/tunisie-australie-en-direct-suivez-le-match-de-la-coupe-du-monde-2022_6151723_1616938.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/26/ce-sera-broadway-a-paris-le-nouveau-lido-se-voit-deja-en-haut-de-l-affiche_6151710_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-le-mag/article/2022/11/25/comme-dua-lipa-qui-a-snobe-le-qatar-ces-stars-ont-boude-les-cachets_6151632_4500055.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/l-affaire-sofiane-bennacer-embarrasse-le-cinema-francais_6151736_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-perso/article/2022/11/26/fille-facile-ou-comment-la-rumeur-a-tue-shaina-15-ans_6151744_4497916.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/25/le-renforcement-credo-de-la-securite-des-musees-parisiens-face-aux-actions-militantes-contre-les-tableaux_6151659_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/culture/article/2022/11/26/beyonce-reussit-son-entree-a-normale-sup_6151748_3246.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/societe/article/2022/11/26/evaluations-nationales-de-cp-ce1-et-6e-les-eleves-les-plus-faibles-reduisent-l-ecart_6151729_3224.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/politique/article/2022/11/26/du-ps-a-eelv-la-nupes-a-l-epreuve-des-congres_6151735_823448.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/argent/article/2022/11/26/immobilier-a-la-baule-une-demande-toujours-aussi-forte_6151707_1657007.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-styles/article/2022/11/26/a-chevreloup-le-tour-du-monde-en-2-500-especes-d-arbres_6151720_4497319.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/m-perso/article/2022/11/25/familles-monoparentales-cinq-livres-jeunesse-qui-vous-ressemblent_6151626_4497916.html"}
+{"level":"info","message":"parsed news: https://www.lemonde.fr/livres/article/2022/11/20/au-programme-du-34e-forum-philo-le-monde-le-mans-les-25-26-et-27-novembre_6150740_3260.html"}
