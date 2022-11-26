@@ -6,7 +6,7 @@ const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {ENABLE_TRANSLATE} = require("../../config/config");
 
-parseLiveNews = async (browser, url)=>{
+const parseLiveNews = async (browser, url)=>{
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {
         waitUntil: 'load',
@@ -51,7 +51,7 @@ parseLiveNews = async (browser, url)=>{
     return {liveNewsList, latestTime, mainImageHref}
 }
 
-parseArticle = async (browser, url)=>{
+const parseArticle = async (browser, url)=>{
     if (url.includes('/weather/')){
         return await goToWeatherArticlePageAndParse(browser, url);
     }else if(url.includes('/sport/')) {
@@ -63,7 +63,7 @@ parseArticle = async (browser, url)=>{
     }
 }
 
-goToVideoPageAndParse = async (browser, url)=>{
+const goToVideoPageAndParse = async (browser, url)=>{
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {

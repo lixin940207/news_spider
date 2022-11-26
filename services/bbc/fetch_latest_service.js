@@ -156,7 +156,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("3 * * * *", crawl);
 } else {
     crawl()
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r);
                 process.exit(1);

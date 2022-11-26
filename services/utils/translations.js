@@ -1,8 +1,5 @@
 // const redisClient = require('../redis_connection');
-const axios = require('axios');
-const {Translate} = require('@google-cloud/translate').v2;
 const md5 = require('md5');
-const assert = require("assert");
 const {delAsync} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
 const {getAsync} = require("../redis_connection");
@@ -10,17 +7,9 @@ const {REDIS_INPUT_QUEUE_KEY} = require("../../config/config");
 
 
 const {
-    GOOGLE_TRANSLATION_API,
-    GOOGLE_API_KEY,
-    BAIDU_TRANSLATION_API,
     BAIDU_APP_ID,
     BAIDU_SECRET_KEY
 } = require("../../config/config");
-
-const translate = new Translate({
-    projectId: "stellar-acre-320617",
-    keyFilename: "./config/stellar-acre-320617-59ecbb8ce446.json"
-});
 
 
 async function pushToQueueAndWaitForTranslateRes(q) {

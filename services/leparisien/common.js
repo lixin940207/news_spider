@@ -1,4 +1,3 @@
-const {ifSelectorExists} = require("../utils/util");
 const moment = require('moment');
 const logger = require("../../config/logger");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
@@ -50,7 +49,7 @@ parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'load', timeout: 0});
     try {
-        await pageLive.waitForSelector('article', {timeout: 30000});
+        await pageLive.waitForSelector('div.pageContent article', {timeout: 0});
     } catch (e) {
         logger.error(url + 'has problem!')
     }
@@ -131,17 +130,18 @@ parseLiveNews = async (browser, url) => {
             date.setHours(Number(timeText.split(':')[0]));
             date.setMinutes(Number(timeText.split(':')[1]));
         }
-        return date
+        return date;
     }));
 
     const liveNewsList = await Promise.all(liveElementText.map(async (element, i) => {
-        let liveTitle = "";
+        let liveTitle = '';
         try {
-            liveTitle = await element.evaluate('h2', n => n.innerText);
+            liveTitle = await element.$eval('div.standard-card_container_element h2', n => n.innerText);
         } catch (e) {
-
+            liveTitle = '';
         }
-        const summary = await getBodyBlockList(element, 'p,ul');
+        const summary = await getBodyBlockList(element, 'div.standard-card_container_element p,' +
+            'div.standard-card_container_element ul');
         return {
             liveTitle: {
                 ori: liveTitle,

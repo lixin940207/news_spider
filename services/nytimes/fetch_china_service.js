@@ -3,22 +3,17 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.NYTimesURL;
 const logger = require('../../config/logger');
 const {parseChineseArticle} = require("./common");
 const {NewsObject} = require("../utils/objects");
-const {getBodyBlockList} = require("../utils/util");
-const {ArticleObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const BASE_URL = 'https://cn.nytimes.com';
 
-let objs = {};
 let browser;
 
 crawl = async () => {
     logger.info('NYTimes china objects start crawling.')
-    objs = {}
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -74,7 +69,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("39 * * * *", crawl);
 } else {
     crawl()
-    .then(s => process.exit())
+    .then(() => process.exit())
     .catch(r => {
             logger.error(r);
             process.exit(1);

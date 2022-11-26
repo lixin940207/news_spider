@@ -6,12 +6,10 @@ const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
-const {processStr} = require("../utils/util");
+const {processStr, getImageHref, ifSelectorExists} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
-const {getImageHref} = require("../utils/util");
 const {parseArticle} = require("./common");
-const {ifSelectorExists, determineCategory} = require("../utils/util");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 let browser;
 
@@ -75,7 +73,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("21 * * * *", crawl);
 } else {
     crawl()
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r);
                 process.exit(1);

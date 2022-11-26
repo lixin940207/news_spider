@@ -2,7 +2,6 @@ const {processStr, ifSelectorExists, getImageHref} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
-const {loggers} = require("winston");
 const {ENABLE_TRANSLATE} = require("../../config/config");
 
 module.exports.goToArticlePageAndParse = async (browser, url) => {

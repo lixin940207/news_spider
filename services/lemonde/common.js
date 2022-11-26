@@ -1,9 +1,8 @@
-const {ifSelectorExists, getImageHref} = require("../utils/util");
 const moment = require("moment");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
-const {getBodyBlockList} = require("../utils/util");
+const {getBodyBlockList, ifSelectorExists} = require("../utils/util");
 const {ENABLE_TRANSLATE} = require("../../config/config");
 
 module.exports.goToArticlePageAndParse = async (browser, url) => {

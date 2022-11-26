@@ -3,13 +3,12 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeMondeURL;
 const logger = require('../../config/logger');
-const {processStr} = require("../utils/util");
+const {processStr, getImageHref} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
-const {getImageHref} = require("../utils/util");
 const {determineCategory} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
 const {goToArticlePageAndParse, parseLiveNews} = require('./common');
@@ -176,14 +175,14 @@ parseNews = async (element, idx) => {
             return [news].concat(liveNewsList);
         }
     }
-
+    logger.info("parsed news: " + news.articleHref);
     return news;
 }
 if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("30 * * * *", crawl);
 } else {
     crawl()
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r.stack);
                 process.exit(1);

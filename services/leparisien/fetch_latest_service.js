@@ -3,7 +3,7 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
@@ -83,7 +83,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("36 * * * *", crawl);
 } else {
     crawl()
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r);
                 process.exit(1);

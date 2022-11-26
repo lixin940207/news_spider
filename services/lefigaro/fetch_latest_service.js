@@ -1,19 +1,15 @@
+require('../mongodb_connection');
 const puppeteer = require('puppeteer');
 const logger = require('../../config/logger');
-require('../mongodb_connection');
 const URL = require('../../config/config').ORIGINAL_URLS.LeFigaroURL;
 const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
-const {processStr} = require("../utils/util");
+const {processStr, getImageHref, ifSelectorExists, determineCategory} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
-const {getDisplayOrder} = require("../utils/util");
-const {getImageHref} = require("../utils/util");
 const {parseLiveNews, parseArticle} = require("./common");
-const {ifSelectorExists} = require("../utils/util");
-const {determineCategory} = require("../utils/util");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 
 let browser;
 
@@ -242,7 +238,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("24 * * * *", crawl);
 } else {
     crawl()
-    .then(s => process.exit())
+    .then(() => process.exit())
     .catch(r => {
             logger.error(r);
             process.exit(1);

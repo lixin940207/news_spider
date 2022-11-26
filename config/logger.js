@@ -8,7 +8,7 @@ const logger = winston.createLogger({
     transports: [
         new File({
             name: 'base_logger',
-            filename: `../log/info.log.`,
+            filename: `../log/info.log`,
             prepend: false,
             datePattern: 'yyyy-MM-dd',
             level: 'info',
@@ -16,7 +16,7 @@ const logger = winston.createLogger({
         }),
         new File({
             name: 'error_logger',
-            filename: `../log/error.log.`,
+            filename: `../log/error.log`,
             prepend: false,
             datePattern: 'yyyy-MM-dd',
             level: 'error',
@@ -25,16 +25,15 @@ const logger = winston.createLogger({
     ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new Console({
-        // format: winston.format.splat(),
-        name: 'base_logger',
-        prepend: false,
-        datePattern: 'yyyy-MM-dd',
-        level: 'info',
-        label: module.filename,
+logger.add(new Console({
+    // format: winston.format.splat(),
+    name: 'base_logger',
+    prepend: false,
+    datePattern: 'yyyy-MM-dd',
+    level: 'info',
+    label: module.filename,
 
-    }));
-}
+}));
+
 
 module.exports = logger;

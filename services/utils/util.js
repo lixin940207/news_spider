@@ -43,32 +43,11 @@ async function getImageHref(element, selector='img', order=-1) {
     return undefined;
 }
 
-function getImgNodeSrc(node, order=1){
-    let srcs = [];
-    srcs.push(node.getAttribute('srcset'));
-    srcs.push(node.getAttribute('data-srcset'));
-    srcs.push(node.getAttribute('data-src'));
-    srcs.push(node.getAttribute('src'));
-    srcs.push(node.getAttribute('data-url'));
-    const src = srcs.filter(i=> i!==null && i!==undefined && i.startsWith('http'))[0];
-    if (src === undefined){
-        console.log(node.outerHTML)
-    }
-    src.replace('{width}', '400');
-    const srcSplit = src.split(/[\s,;]+/)
-    const srcSplitFilter = srcSplit.filter(i=>i.length>5);
-    if(order === 1){
-        return srcSplitFilter[0];
-    }else{
-        return srcSplitFilter[srcSplitFilter.length - 1];
-    }
-}
-
 function getDisplayOrder(ranking, current_ts) {
     return ranking * 0.01 - current_ts;
 }
 
-async function getBodyBlockList(element, selectors, translate=true) {
+async function getBodyBlockList(element, selectors) {
     let blockList = await element.$$eval(selectors,  nodes=> nodes.map(
             n => {
                 console.log(n.outerHTML)
@@ -104,6 +83,10 @@ async function getBodyBlockList(element, selectors, translate=true) {
                             ori: liList,
                         }
                     }catch (e) {
+                        return {
+                            type: 'ul',
+                            ori: [],
+                        }
                     }
                 }else if(n.tagName === 'H2' || n.tagName === 'H3'){
                     return {

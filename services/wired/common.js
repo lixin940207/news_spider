@@ -1,5 +1,5 @@
 const {ArticleObject} = require("../utils/objects");
-const {processStr, getBodyBlockList, ifSelectorExists} = require("../utils/util");
+const {processStr, getBodyBlockList} = require("../utils/util");
 const {ENABLE_TRANSLATE} = require("../../config/config");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 
@@ -8,8 +8,6 @@ acceptCookie = async (page) => {
             page.waitForNavigation(), // The promise resolves after navigation has finished
             page.click('button.btn.secondary.accept-all.consent_reject_all_2'), // Clicking the link will indirectly cause a navigation
         ]);
-    // await page.waitForNavigation();
-    // await page.click('button.btn.secondary.accept-all.consent_reject_all_2');
 }
 
 parseArticle = async (browser, url) => {
@@ -19,9 +17,6 @@ parseArticle = async (browser, url) => {
         waitUntil: 'load',
         timeout: 0
     });
-    // if (await ifSelectorExists(pageContent, 'form.consent-form')) {
-    //     await acceptCookie(pageContent);
-    // }
 
     await pageContent.waitForSelector('article.article.main-content', {timeout: 0})
 

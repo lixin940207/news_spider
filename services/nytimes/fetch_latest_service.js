@@ -3,17 +3,12 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.NYTimeURL;
 const logger = require('../../config/logger');
-const {processStr, ifSelectorExists} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
-const {parseChineseArticle} = require("./common");
+const {ifSelectorExists} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
-const {getDisplayOrder} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
 const {parseArticle, parseLiveNews} = require("./common");
-const {determineCategory} = require("../utils/util");
 
 let browser;
 
@@ -150,7 +145,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("42 * * * *", crawl);
 } else {
     crawl()
-    .then(s => process.exit())
+    .then(() => process.exit())
     .catch(r => {
             logger.error(r.stack);
             process.exit(1);

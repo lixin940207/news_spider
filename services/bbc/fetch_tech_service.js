@@ -2,18 +2,15 @@ const puppeteer = require('puppeteer');
 const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require('../../config/config');
+const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
-const moment = require('moment-timezone');
-const {processStr} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
-const {parseTime, parseArticle} = require("./common");
-const {ifSelectorExists, determineCategory, getImageHref} = require("../utils/util");
+const {parseArticle} = require("./common");
+const {ifSelectorExists, getImageHref, processStr} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 
 const BASE_URL = 'https://www.bbc.com';
-const CHINA_URL = require('../../config/config').CHINA_NEWS_URLS.BBCURL;
 const TECH_URL = require('../../config/config').TECHNOLOGY.BBCURL;
 
 let browser;
@@ -102,7 +99,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("6 * * * *", () => crawl(TECH_URL, "Tech"));
 } else {
     crawl(TECH_URL, "Tech")
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r);
                 process.exit(1);

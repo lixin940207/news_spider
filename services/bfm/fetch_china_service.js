@@ -3,18 +3,16 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.BFMURL;
 const BASE_URL = require('../../config/config').ORIGINAL_URLS.BFMURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
-const {getImageHref} = require("../utils/util");
 const {goToDetailPageAndParse} = require("./common");
-const {goToArticlePageAndParse} = require("./common");
-const {ifSelectorExists} = require("../utils/util");
-const {determineCategory} = require("../utils/util");
+const {ifSelectorExists, getImageHref, determineCategory} = require("../utils/util");
+
 moment.locale('en');
 
 let browser;
@@ -86,7 +84,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("9 * * * *", crawl);
 } else {
     crawl()
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r);
                 process.exit(1);

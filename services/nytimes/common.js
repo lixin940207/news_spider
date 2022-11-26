@@ -43,7 +43,7 @@ parseLiveNews = async (browser, url) => {
         mainImageHref = await getImageHref(pageLive, 'header.live-blog-header figure img');
     } else {
         const headerHTML = await pageLive.$eval('header.live-blog-header', node=>node.outerHTML);
-        mainImageHref = headerHTML.match(/src\":\"([a-zA-Z0-9\.\/\:\-]+\.jpg)/)[1];
+        mainImageHref = headerHTML.match(/src":"([a-zA-Z0-9./:-]+\.jpg)/)[1];
     }
     return {mainImageHref, publishTime: liveTime, liveNewsList};
 }
@@ -160,41 +160,6 @@ async function parseChineseArticle(browser, url){
     article.headImageHref = await getImageHref(pageContent,'figure.article-span-photo img');
 
     article.bodyBlockList = await getBodyBlockList(pageContent,'section.article-body div.article-paragraph', false);
-    return article;
-}
-
-async function parseDualArticle(browser, url){
-    const article = new ArticleObject();
-    const pageContent = await browser.newPage();
-    await pageContent.goto(url, {
-        waitUntil: 'load',
-        timeout: 0
-    });
-    await pageContent.bringToFront();
-    await pageContent.waitForSelector('article', {timeout: 0});
-
-    article.title.cn = await pageContent.$eval('.article-header header h1:not(.en-title)', node => node.innerText);
-    article.title.ori = await pageContent.$eval('.article-header header h1.en-title', node => node.innerText);
-    const timeText = await pageContent.$eval('.article-header time[datetime]', node => node.getAttribute('datetime'));
-    article.publishTime = new Date(timeText.replace(' ','T')+'+08:00');
-    article.headImageHref = await getImageHref(pageContent,'figure.article-span-photo img');
-
-    const blockElementList = await pageContent.$$('.article-body .article-partial [class*="article-body-ite"] [class*="article-dual-body-item"],' +
-        '.article-body .article-partial [class*="article-body-ite"] [class*="article-inline-photo"]');
-    article.bodyBlockList = await Promise.all(blockElementList.map(async node=>{
-        if(await ifSelectorExists(node,'img')){
-            return {
-                type: 'img',
-                src: node.$eval('img', n=>n.getAttribute('src'))
-            }
-        }else{
-            return {
-                type: 'p',
-                cn: await node.$eval('.article-paragraph:first', node=>node.innerText),
-                ori: await node.$eval('.article-paragraph:last', node=>node.innerText),
-            }
-        }
-    }))
     return article;
 }
 

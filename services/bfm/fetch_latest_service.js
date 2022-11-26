@@ -3,17 +3,14 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {CRAWL_TIME_INTERVAL, ENABLE_TRANSLATE} = require("../../config/config");
+const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.BFMURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {processStr} = require("../utils/util");
+const {processStr, getImageHref, determineCategory} = require("../utils/util");
 const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
-const {getDisplayOrder} = require("../utils/util");
-const {getImageHref} = require("../utils/util");
 const {goToDetailPageAndParse, parseLiveNews} = require("./common");
-const {determineCategory} = require("../utils/util");
 moment.locale('en');
 
 let browser;
@@ -92,7 +89,7 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("12 * * * *", crawl);
 } else {
     crawl()
-        .then(s => process.exit())
+        .then(() => process.exit())
         .catch(r => {
                 logger.error(r);
                 process.exit(1);

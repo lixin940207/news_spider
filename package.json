@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/translate": "^6.2.6",
     "axios": "^0.21.1",
     "depcheck": "^1.4.3",
     "md5": "^2.3.0",
@@ -24,7 +23,6 @@
     "winston-daily-rotate-file": "^4.5.5"
   },
   "devDependencies": {
-    "eslint": "^8.17.0",
-    "eslint-plugin-react": "^7.30.0"
+    "eslint": "^8.28.0"
   }
 }
