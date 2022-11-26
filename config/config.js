@@ -29,6 +29,5 @@ module.exports = {
     BAIDU_APP_ID:"20210804000906367",
     BAIDU_SECRET_KEY: "SGizDzpZGle9f5IKj0U3",
     REDIS_INPUT_QUEUE_KEY: "translate_input",
-    CRAWL_TIME_INTERVAL: "13 * * * *",
     ENABLE_TRANSLATE: false,
 }
