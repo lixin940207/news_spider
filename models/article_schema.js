@@ -6,7 +6,7 @@ const articleSchema = new Schema({
     summary: {cn:String, ori:String},
     articleHref: String,
     headImageHref: String,
-    publishTime: Date,
+    publishTime: String,
     bodyBlockList: [{type: String, src: String, ori:Object, cn:Object}],
 })
 
