@@ -63,6 +63,7 @@ const parseArticle = async (browser, url) => {
         article = await goToArticlePageAndParse(browser, url);
     }
     article.abstract = await asyncSummarize(article);
+    return article;
 }
 
 const goToVideoPageAndParse = async (browser, url) => {

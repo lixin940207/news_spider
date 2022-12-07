@@ -2,22 +2,26 @@ const md5 = require('md5');
 const {delAsync} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
 const {getAsync} = require("../redis_connection");
-const {REDIS_NLP_TRANSLATE_QUEUE_KEY} = require("../../config/config");
+const {REDIS_NLP_TRANSLATE_QUEUE_KEY, ENABLE_TRANSLATE} = require("../../config/config");
 
 async function asyncTranslate(text, ori) {
     const i = {}
-    if (ori === "en") {
-        i.en = text;
-        i.fr = await pushToQueueAndWaitForTranslateRes(i.en, "en_fr");
-        i.zh = await pushToQueueAndWaitForTranslateRes(i.en, "en_zh");
-    } else if (ori === "fr") {
-        i.fr = text;
-        i.en = await pushToQueueAndWaitForTranslateRes(i.fr, "fr_en");
-        i.zh = await pushToQueueAndWaitForTranslateRes(i.en, "en_zh");
+    if (ENABLE_TRANSLATE) {
+        if (ori === "en") {
+            i.en = text;
+            i.fr = await pushToQueueAndWaitForTranslateRes(i.en, "en_fr");
+            i.zh = await pushToQueueAndWaitForTranslateRes(i.en, "en_zh");
+        } else if (ori === "fr") {
+            i.fr = text;
+            i.en = await pushToQueueAndWaitForTranslateRes(i.fr, "fr_en");
+            i.zh = await pushToQueueAndWaitForTranslateRes(i.en, "en_zh");
+        } else {
+            i.zh = text;
+            i.en = await pushToQueueAndWaitForTranslateRes(i.zh, "zh_en");
+            i.fr = await pushToQueueAndWaitForTranslateRes(i.en, "en_fr");
+        }
     } else {
-        i.zh = text;
-        i.en = await pushToQueueAndWaitForTranslateRes(i.zh, "zh_en");
-        i.fr = await pushToQueueAndWaitForTranslateRes(i.en, "en_fr");
+        i[ori] = text;
     }
     return i;
 }

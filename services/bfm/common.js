@@ -24,7 +24,7 @@ goToDetailPageAndParse = async (browser, url) => {
         article = await goToArticlePageAndParse(pageContent, url);
     }
     article.abstract = await asyncSummarize(article);
-
+    return article;
 }
 
 goToArticlePageAndParse = async (pageContent) => {

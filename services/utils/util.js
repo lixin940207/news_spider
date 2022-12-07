@@ -48,13 +48,13 @@ function getDisplayOrder(ranking, current_ts) {
 }
 
 async function getBodyBlockList(element, selectors, ori) {
-    let blockList = await element.$$eval(selectors, nodes => nodes.map(
+    let blockList = await element.$$eval(selectors, (nodes, ori) => nodes.map(
         n => {
             console.log(n.outerHTML)
             if (n.tagName === 'P') {
                 return {
                     type: 'p',
-                    ori: n.innerText,
+                    [ori]: n.innerText,
                 }
             } else if (n.tagName === 'IMG') {
                 let srcs = [];
@@ -80,23 +80,23 @@ async function getBodyBlockList(element, selectors, ori) {
                     n.getElementsByTagName('li').forEach((item) => liList.push(item.innerText))
                     return {
                         type: 'ul',
-                        ori: liList,
+                        [ori]: liList,
                     }
                 } catch (e) {
                     return {
                         type: 'ul',
-                        ori: [],
+                        [ori]: [],
                     }
                 }
             } else if (n.tagName === 'H2' || n.tagName === 'H3') {
                 return {
                     type: 'h2',
-                    ori: n.innerText,
+                    [ori]: n.innerText,
                 }
             } else if (n.tagName === 'BLOCKQUOTE') {
                 return {
                     type: 'blockquote',
-                    ori: n.innerText,
+                    [ori]: n.innerText,
                 }
             } else if (n.tagName === 'DIV') {
                 if (n.getElementsByTagName('figure').length > 0) {
@@ -107,22 +107,22 @@ async function getBodyBlockList(element, selectors, ori) {
                 } else {
                     return {
                         type: 'p',
-                        ori: n.innerText,
+                        [ori]: n.innerText,
                     }
                 }
             } else {
-                return {type: n.tagName, ori: n.outerHTML};
+                return {type: n.tagName, [ori]: n.outerHTML};
             }
         }
-    ));
+    ), ori);
     blockList = blockList.filter(i => i !== undefined && i !== null);
     if (ENABLE_TRANSLATE) {
-        const ul_texts = blockList.filter(i => i.type === 'ul').map(i => i.ori);
+        const ul_texts = blockList.filter(i => i.type === 'ul').map(i => i[ori]);
         const ul_texts_prediction = [];
         for (let i = 0; i < ul_texts.length; i++) {
             ul_texts_prediction.append(await asyncTranslate(ul_texts, ori));
         }
-        const p_texts = blockList.filter(i => ['p', 'h2', 'blockquote'].includes(i.type)).map(i => processStr(i.ori))
+        const p_texts = blockList.filter(i => ['p', 'h2', 'blockquote'].includes(i.type)).map(i => processStr(i[ori]))
         const p_texts_prediction = await asyncTranslate(p_texts, ori);
 
         assert(p_texts.length === p_texts_prediction.en.length)
@@ -133,7 +133,6 @@ async function getBodyBlockList(element, selectors, ori) {
             if (blockList[i].type === 'ul') {
                 blockList[i] = ul_texts_prediction.pop()
             } else if (['p', 'h2', 'blockquote'].includes(blockList[i].type)) {
-                delete blockList[i].ori;
                 blockList[i].en = p_texts_prediction.en.pop();
                 blockList[i].fr = p_texts_prediction.fr.pop();
                 blockList[i].zh = p_texts_prediction.zh.pop();

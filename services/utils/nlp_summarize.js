@@ -2,23 +2,36 @@ const md5 = require('md5');
 const {delAsync} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
 const {getAsync} = require("../redis_connection");
-const {REDIS_NLP_SUMMARIZE_QUEUE_KEY} = require("../../config/config");
+const {REDIS_NLP_SUMMARIZE_QUEUE_KEY, ENABLE_TRANSLATE, ENABLE_SUMMARIZE} = require("../../config/config");
 const {pushToQueueAndWaitForTranslateRes} = require("./translations");
 
-async function asyncSummarize(article) {
-    const summarize_resulsts = await Promise.all([
-        pushArticleToNLPSummarizeQueue(article, "en"),
-        pushArticleToNLPSummarizeQueue(article, "fr"),
-        pushToQueueAndWaitForTranslateRes(article.abstract.en, 'en_zh')
-    ]);
-    if (summarize_resulsts instanceof Error) {
-        return {};
+async function asyncSummarize(article, ori) {
+    if (!ENABLE_SUMMARIZE){
+        return undefined;
     }
-    return {
-        en: summarize_resulsts[0],
-        fr: summarize_resulsts[1],
-        zh: summarize_resulsts[2],
-    };
+    if (ENABLE_TRANSLATE) {
+        const summarize_resulsts = await Promise.all([
+            pushArticleToNLPSummarizeQueue(article, "en"),
+            pushArticleToNLPSummarizeQueue(article, "fr"),
+            pushToQueueAndWaitForTranslateRes(article.abstract.en, 'en_zh')
+        ]);
+        if (summarize_resulsts instanceof Error) {
+            return {};
+        }
+        return {
+            en: summarize_resulsts[0],
+            fr: summarize_resulsts[1],
+            zh: summarize_resulsts[2],
+        };
+    } else {
+        if (ori === 'zh') {
+            return {'zh': 'not supported yet.'};
+        }
+        return {
+            [ori]: await pushArticleToNLPSummarizeQueue(article, ori),
+        }
+    }
+
 }
 
 async function pushArticleToNLPSummarizeQueue(article, lang) {

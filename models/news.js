@@ -8,7 +8,7 @@ newsSchema = new BaseSchema(
         timestamps: true
     });
 
-newsSchema.index({createdAt: 1}, {expireAfterSeconds: 43200});
+newsSchema.index({"updatedAt": 1}, {expireAfterSeconds: 43200});
 
 const NewsModel = mongoose.model('news', newsSchema);
 

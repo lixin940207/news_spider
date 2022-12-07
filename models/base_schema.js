@@ -57,11 +57,6 @@ function BaseSchema() {
             title: textSchema,
             article: articleSchema
         }],
-        expireAt: {
-            type: Date,
-            default: Date.now,
-            index: {expires: '5d'}
-        }
     });
 }
 

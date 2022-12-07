@@ -36,4 +36,5 @@ module.exports = {
     REDIS_NLP_TRANSLATE_QUEUE_KEY: "nlp_translate_queue",
     REDIS_NLP_SUMMARIZE_QUEUE_KEY: "nlp_summarize_queue",
     ENABLE_TRANSLATE: true,
+    ENABLE_SUMMARIZE: true,
 }
