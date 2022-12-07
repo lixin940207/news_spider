@@ -2,16 +2,16 @@ const puppeteer = require('puppeteer');
 const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
-const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {parseArticle} = require("./common");
 const {ifSelectorExists, getImageHref, processStr} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 
 const BASE_URL = 'https://www.bbc.com';
 const TECH_URL = require('../../config/config').TECHNOLOGY.BBCURL;
+const LANG = require('../../config/config').LANGUAGE.BBC;
 
 let browser;
 
@@ -60,8 +60,10 @@ crawl = async (URL, category) => {
 parseNews = async (element, idx, category) => {
     const news = new NewsObject();
     news.ranking = idx
-    news.title.ori = processStr(await element.$eval('div.gs-c-promo-body .gs-c-promo-heading .gs-c-promo-heading__title', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+
+
+    const oriTitle = processStr(await element.$eval('div.gs-c-promo-body .gs-c-promo-heading .gs-c-promo-heading__title', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
 
     news.imageHref = await getImageHref(element, 'div.gs-c-promo-image img');
     // if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;
@@ -76,10 +78,7 @@ parseNews = async (element, idx, category) => {
             const articleHref = await element.evaluate(node => node.getAttribute('href'));
             const title = processStr(await element.evaluate(node => node.innerText));
             return {
-                title: {
-                    ori: title,
-                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title) : "",
-                },
+                title: await asyncTranslate(title, LANG),
                 article: await parseArticle(browser, BASE_URL + articleHref)
             }
         }))
@@ -91,7 +90,7 @@ parseNews = async (element, idx, category) => {
         }
     }
     news.categories = [category];
-    logger.info("parsed news ", { title: news.title.ori});
+    logger.info("parsed news ", { href: news.articleHref});
     return news;
 }
 

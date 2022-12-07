@@ -3,14 +3,14 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.France24URL;
 const logger = require('../../config/logger');
 const {processStr, getImageHref, ifSelectorExists} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
 const {determineCategory} = require("../utils/util");
+const LANG = require('../../config/config').LANGUAGE.FRANCE24;
 
 const BASE_URL = 'https://www.france24.com';
 
@@ -59,9 +59,9 @@ parseNews = async (element, idx) => {
     if ([encodeURIComponent('vidéo'), encodeURIComponent('émissions')].includes(news.articleHref.split('/')[4])) {
         return undefined;
     }
-    news.title.ori = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
-    news.categories = determineCategory(news.title.ori);
+    const oriTitle = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = determineCategory(oriTitle);
     news.imageHref = await getImageHref(element, 'div.article__figure-wrapper img');
     news.isLive = false;
     news.newsType = NewsTypes.CardWithImage;
@@ -73,7 +73,8 @@ parseNews = async (element, idx) => {
         news.relatedNewsList = await Promise.all(relatedNewsElements.map(async element => {
             const rNews = new NewsObject();
             rNews.articleHref = BASE_URL + await element.evaluate(node => node.getAttribute('href'));
-            rNews.title.ori = await element.evaluate(node=>node.innerText);
+            const oriTitle = await element.evaluate(node=>node.innerText);
+            rNews.title = await asyncTranslate(oriTitle, LANG);
             rNews.article = await goToArticlePageAndParse(browser, rNews.articleHref);
             return rNews;
         }));

@@ -9,6 +9,8 @@ const {ifSelectorExists} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {parseArticle, parseLiveNews} = require("./common");
+const {asyncTranslate} = require("../utils/translations");
+const LANG = require("../../config/config").LANGUAGE.NYTimes;
 
 let browser;
 
@@ -110,9 +112,11 @@ parseSingleNews = async (browser, element, idx) => {
     news.region = hrefSplit[hrefSplit.length - 2];
     news.isLive = hrefSplit[3] === 'live';
 
-    news.title.ori = await element.$eval('h2.indicate-hover, h3.indicate-hover', node => node.innerText);
+    const oriTitle = await element.$eval('h2.indicate-hover, h3.indicate-hover', node => node.innerText);
+    news.title = await asyncTranslate(oriTitle, LANG);
     if (await ifSelectorExists(element, 'p.summary-class')) {
-        news.summary.ori = await element.$eval('p.summary-class', node => node.innerText);
+        const oriSummary = await element.$eval('p.summary-class', node => node.innerText);
+        news.summary = await asyncTranslate(oriSummary, LANG);
     }
     news.imageHref = await getImageHref(element, 'picture.css-hdqqnp img')
     if (news.imageHref && news.isLive) {

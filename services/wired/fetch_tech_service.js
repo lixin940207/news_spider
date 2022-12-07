@@ -2,15 +2,14 @@ const puppeteer = require('puppeteer');
 const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
-const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {parseArticle} = require("./common");
 const {getImageHref} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
-
+const LANG = require("../../config/config").LANGUAGE.WIRED;
 const TECH_URL = require('../../config/config').TECHNOLOGY.WIRED;
 
 let browser;
@@ -68,8 +67,8 @@ parseNews = async (element, idx, category) => {
     const news = new NewsObject();
     news.ranking = idx
 
-    news.title.ori = processStr(await element.$eval('[data-testid="SummaryItemHed"]', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+    const oriTitle = processStr(await element.$eval('[data-testid="SummaryItemHed"]', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
 
     news.imageHref = await getImageHref(element, 'picture.summary-item__image img');
     news.articleHref = await element.$eval('a.summary-item__hed-link', node=>node.getAttribute('href'));
@@ -83,11 +82,9 @@ parseNews = async (element, idx, category) => {
     news.publishTime = news.article.publishTime;
 
     news.newsType = NewsTypes.CardWithImage;
-    // news.summary.ori = await element.$eval('div.post-block__content', node => node.innerText);
-    // news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori) : "";
 
     news.categories = [category];
-    logger.info("parsed news ", { title: news.title.ori});
+    logger.info("parsed news ", { href: news.articleHref});
     return news;
 }
 

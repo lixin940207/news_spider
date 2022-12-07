@@ -3,14 +3,15 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.France24URL;
 const logger = require('../../config/logger');
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
 const {determineCategory} = require("../utils/util");
+const LANG = require('../../config/config').LANGUAGE.FRANCE24;
+
 const BASE_URL = 'https://www.france24.com';
 
 let browser;
@@ -52,11 +53,11 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
 
-    news.title.ori = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
-    if(!determineCategory(news.title.ori).includes('China')){
+    const oriTitle = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
+    if(!determineCategory(oriTitle).includes('China')){
         return;
     }
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+    news.title = await asyncTranslate(oriTitle, LANG);
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
     if ((await element.$$('img[src]')).length > 0) {
         news.imageHref = (await element.$eval('img[src]', node => node.innerText)).split('"')[1];

@@ -3,15 +3,15 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeMondeURL;
 const logger = require('../../config/logger');
 const {processStr, getImageHref} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {determineCategory} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
 const {goToArticlePageAndParse, parseLiveNews} = require('./common');
+const LANG = require("../../config/config").LANGUAGE.LeMonde;
 
 let browser;
 
@@ -54,12 +54,13 @@ parseNews = async (element, idx) => {
     if (['visuel', 'video'].includes(news.articleHref.split('/')[4])) {
         return undefined;
     }
-    news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
-    news.categories = determineCategory(news.title.ori);
+    const oriTitle = processStr(await element.$eval('.article__title', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = determineCategory(oriTitle);
     news.newsType = NewsTypes.CardWithTitleWide;
     if (await ifSelectorExists(element,'.article__desc')) {
-        news.summary.ori = processStr(await element.$eval('.article__desc', node => node.innerText));
-        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
+        const oriSummary = processStr(await element.$eval('.article__desc', node => node.innerText));
+        news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     let hasImage = false;
@@ -75,7 +76,8 @@ parseNews = async (element, idx) => {
         news.isLive = (await element.$$('[class*="flag-live-cartridge"]')).length > 0;
     }
     if (news.isLive) {
-        news.title.ori = processStr(await element.$eval('.article__title', node => node.innerText));
+        const oriTitle = processStr(await element.$eval('.article__title', node => node.innerText));
+        news.title = await asyncTranslate(oriTitle, LANG);
         const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
         news.liveNewsList = liveNewsList;
         news.publishTime = latestTime;
@@ -87,7 +89,6 @@ parseNews = async (element, idx) => {
             news.imageHref = news.article.mainImageHref;
         }
     }
-    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
     if (await ifSelectorExists(element,'ul[class*="article__related"]')) {
         const relatedElementList = await element.$$('ul[class*="article__related"] li a');
         if(news.isLive){
@@ -97,10 +98,7 @@ parseNews = async (element, idx) => {
                     const title = processStr(await element.evaluate(node=>node.innerText));
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref)
                     return {
-                        title: {
-                            ori: title,
-                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
-                        },
+                        title: await asyncTranslate(title, LANG),
                         ranking:idx,
                         isLive: true,
                         articleHref,
@@ -117,10 +115,7 @@ parseNews = async (element, idx) => {
                     const title = processStr(await element.evaluate(node=>node.innerText));
                     const article = await goToArticlePageAndParse(browser,articleHref);
                     return {
-                        title: {
-                            ori: title,
-                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
-                        },
+                        title: await asyncTranslate(title, LANG),
                         article,
                         publishTime: article.publishTime,
                     }
@@ -144,10 +139,7 @@ parseNews = async (element, idx) => {
                 if((await element.$$('[class*="flag-live-cartridge"]')).length === 0){
                     const title = processStr(await element.evaluate(node=>node.innerText));
                     return {
-                        title: {
-                            ori: title,
-                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
-                        },
+                        title: await asyncTranslate(title, LANG),
                         article: await goToArticlePageAndParse(browser, await element.evaluate(node=>node.getAttribute('href'))),
                     }
                 }
@@ -159,10 +151,7 @@ parseNews = async (element, idx) => {
                     const title = processStr(await element.evaluate(node=>node.innerText));
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref)
                     return {
-                        title: {
-                            ori: title,
-                            cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title):"",
-                        },
+                        title: await asyncTranslate(title, LANG),
                         ranking: idx,
                         articleHref,
                         newsType: NewsTypes.CardWithLive,

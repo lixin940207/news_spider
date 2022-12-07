@@ -1,23 +1,22 @@
 const logger = require("../../config/logger");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
-const {ENABLE_TRANSLATE} = require("../../config/config");
+const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
-
-parseArticle = async (browser, url) =>{
+parseArticle = async (browser, url) => {
     const partName = url.split(/[./]/)[2];
     if (partName === 'madame') {
-        return await goToMadArticlePageAndParse(browser,url);
+        return await goToMadArticlePageAndParse(browser, url);
     } else if (partName === 'etudiant') {
-        return await goToEduArticlePageAndParse(browser,url);
-    } else if (partName === 'tvmag'){
+        return await goToEduArticlePageAndParse(browser, url);
+    } else if (partName === 'tvmag') {
         return await goToTVMagPageAndParse(browser, url);
-    } else{
-        return await goToArticlePageAndParse(browser,url);
+    } else {
+        return await goToArticlePageAndParse(browser, url);
     }
 }
 
@@ -32,34 +31,37 @@ goToArticlePageAndParse = async (browser, url) => {
         console.log(url);
     }
     try {
-        await pageContent.waitForSelector('article.fig-main', {timeout: 30000});
+        await pageContent.waitForSelector('article.fig-main', {timeout: 0});
     } catch (e) {
         logger.error(url + ' has problem!')
     }
     const mainElement = await pageContent.$('article.fig-main');
 
-    if(await ifSelectorExists(mainElement, '[class*="fig-headline"]')){
-        article.title.ori = processStr(await mainElement.$eval('[class*="fig-headline"]', node => node.innerText));
-    }else if(await ifSelectorExists(mainElement, '[class*="fig-main-title"]')){
-        article.title.ori = processStr(await mainElement.$eval('[class*="fig-main-title"]', node=>node.innerText));
-    }else{
+    let oriTitle;
+    if (await ifSelectorExists(mainElement, '[class*="fig-headline"]')) {
+        oriTitle = processStr(await mainElement.$eval('[class*="fig-headline"]', node => node.innerText));
+    } else if (await ifSelectorExists(mainElement, '[class*="fig-main-title"]')) {
+        oriTitle = processStr(await mainElement.$eval('[class*="fig-main-title"]', node => node.innerText));
+    } else {
         console.log(url);
+        return;
     }
-    article.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
-    if (await ifSelectorExists(mainElement, 'p[class="fig-standfirst"]')){
-        article.summary.ori = processStr(await mainElement.$eval('p[class="fig-standfirst"]', node => node.innerText));
-        article.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.summary.ori) : "";
+    article.title = await asyncTranslate(oriTitle, LANG);
+    if (await ifSelectorExists(mainElement, 'p[class="fig-standfirst"]')) {
+        const oriSummary = processStr(await mainElement.$eval('p[class="fig-standfirst"]', node => node.innerText));
+        article.summary = await asyncTranslate(oriSummary, LANG);
     }
     article.imageHref = await getImageHref(mainElement, 'figure[class*="fig-media"] img');
-    if (await ifSelectorExists(mainElement,"span.fig-content-metas__pub-maj-date time")) {
+    if (await ifSelectorExists(mainElement, "span.fig-content-metas__pub-maj-date time")) {
         article.publishTime = new Date(await mainElement.$eval('span.fig-content-metas__pub-maj-date time',
-                node => node.getAttribute('datetime')));
-    }else{
+            node => node.getAttribute('datetime')));
+    } else {
         article.publishTime = new Date(await mainElement.$eval('span[class*="fig-content-metas__pub-date"] time',
-                node => node.getAttribute('datetime')));
+            node => node.getAttribute('datetime')));
     }
     article.bodyBlockList = await getBodyBlockList(mainElement, 'p.fig-paragraph, ' +
-        'h2.fig-body-heading');
+        'h2.fig-body-heading',
+        LANG);
     return article;
 }
 
@@ -73,21 +75,21 @@ goToTVMagPageAndParse = async (browser, url) => {
     await pageContent.bringToFront();
     await pageContent.waitForSelector('article.fig-content', {timeout: 0});
     const mainElement = await pageContent.$('article.fig-content');
-    article.title.ori = processStr(await mainElement.$eval('h1.fig-main-title', node => node.innerText));
-    article.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
-    if (await ifSelectorExists(mainElement, '.fig-content__chapo')){
-        article.summary.ori = processStr(await mainElement.$eval('.fig-content__chapo', node => node.innerText));
-        article.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.summary.ori): "";
+    const oriTitle = processStr(await mainElement.$eval('h1.fig-main-title', node => node.innerText));
+    article.title = await asyncTranslate(oriTitle, LANG);
+    if (await ifSelectorExists(mainElement, '.fig-content__chapo')) {
+        const oriSummary = processStr(await mainElement.$eval('.fig-content__chapo', node => node.innerText));
+        article.summary = await asyncTranslate(oriSummary, LANG);
     }
     article.imageHref = await getImageHref(mainElement, 'figure[class*="fig-media"] img');
-    if (await ifSelectorExists(mainElement,"span.fig-content-metas__maj-date time")) {
+    if (await ifSelectorExists(mainElement, "span.fig-content-metas__maj-date time")) {
         article.publishTime = new Date(await mainElement.$eval('.fig-content-metas__maj-date time',
             node => node.getAttribute('datetime')));
-    }else{
+    } else {
         article.publishTime = new Date(await mainElement.$eval('.fig-content-metas__pub-date time',
             node => node.getAttribute('datetime')));
     }
-    article.bodyBlockList = await getBodyBlockList(mainElement, '.fig-content__body p');
+    article.bodyBlockList = await getBodyBlockList(mainElement, '.fig-content__body p', LANG);
     return article;
 }
 
@@ -100,7 +102,7 @@ goToMadArticlePageAndParse = async (browser, url) => {
     });
     await pageContent.bringToFront();
     try {
-        await pageContent.waitForSelector('.fig-main-wrapper', {timeout: 30000});
+        await pageContent.waitForSelector('.fig-main-wrapper', {timeout: 0});
     } catch (e) {
         logger.error(url + ' does not match the selector')
         return []
@@ -108,14 +110,14 @@ goToMadArticlePageAndParse = async (browser, url) => {
 
     const mainElement = await pageContent.$('.fig-main-wrapper');
 
-    article.title.ori = processStr(await mainElement.$eval('.fig-headline', node => node.innerText));
-    article.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
-    if (await ifSelectorExists(mainElement, '.fig-standfirst')){
-        article.summary.ori = processStr(await mainElement.$eval('.fig-standfirst', node => node.innerText));
-        article.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.summary.ori): "";
+    const oriTitle = processStr(await mainElement.$eval('.fig-headline', node => node.innerText));
+    article.title = await asyncTranslate(oriTitle, LANG);
+    if (await ifSelectorExists(mainElement, '.fig-standfirst')) {
+        const oriSummary = processStr(await mainElement.$eval('.fig-standfirst', node => node.innerText));
+        article.summary = await asyncTranslate(oriSummary, LANG);
     }
     article.headImageHref = await mainElement.$eval('div.fig-media__container', node => node.getAttribute('data-modal-image-url'));
-    article.bodyBlockList = await getBodyBlockList(mainElement, '.fig-content-body p, .fig-content-body h2')
+    article.bodyBlockList = await getBodyBlockList(mainElement, '.fig-content-body p, .fig-content-body h2', LANG);
     return article;
 }
 
@@ -136,16 +138,18 @@ goToEduArticlePageAndParse = async (browser, url) => {
 
     const mainElement = await pageContent.$('article.article');
 
-    article.title.ori = processStr(await mainElement.$eval('header.article__header h1', node => node.innerText));
-    article.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
-    article.summary.ori = processStr(await mainElement.$eval('.article__content .content--chapo', node => node.innerText));
-    article.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
+    const oriTitle = processStr(await mainElement.$eval('header.article__header h1', node => node.innerText));
+    article.title = await asyncTranslate(oriTitle, LANG);
+    const oriSummary = processStr(await mainElement.$eval('.article__content .content--chapo', node => node.innerText));
+    article.summary = await asyncTranslate(oriSummary, LANG);
     article.headImageHref = await getImageHref(mainElement, '.article__banner img');
 
-    article.bodyBlockList = await getBodyBlockList(mainElement,'.article__content p:not(.content--chapo), ' +
+    article.bodyBlockList = await getBodyBlockList(mainElement,
+        '.article__content p:not(.content--chapo), ' +
         '.article__content figure img,' +
         '.article__content h2' +
-        '.article__content blockquote');
+        '.article__content blockquote',
+        LANG);
     return article;
 }
 
@@ -159,20 +163,17 @@ parseLiveNews = async (browser, url) => {
         return []
     }
     const liveElementList = await pageLive.$$('article[class*="live-message"]');
-    const liveNewsList =  await Promise.all(liveElementList.map(async element => {
+    const liveNewsList = await Promise.all(liveElementList.map(async element => {
         const liveTitle = processStr(await element.$eval('[itemprop="headline"]', node => node.innerText));
         const content = await element.$eval('.live-article', node => node.innerText);
-        const bodyBlockList = await Promise.all(content.split('\n').map(i=>i.trim()).filter(i=>i!=="").map(async i=>{
+        const bodyBlockList = await Promise.all(content.split('\n').map(i => i.trim()).filter(i => i !== "").map(async i => {
             return {
                 type: "p",
-                ori: i,
-                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(i):"",
+                ...(await asyncTranslate(i, LANG)),
             }
         }))
         return {
-            liveTitle: {ori: liveTitle,
-                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(liveTitle): "",
-            },
+            liveTitle: await asyncTranslate(liveTitle, LANG),
             liveHref: url,
             liveTime: new Date(await element.$eval('time', node => node.getAttribute('datetime'))),
             liveContent: {
@@ -180,7 +181,7 @@ parseLiveNews = async (browser, url) => {
             }
         };
     }));
-    const latestTime = new Date(Math.max.apply(null,liveNewsList.map(i=>i.liveTime)));
+    const latestTime = new Date(Math.max.apply(null, liveNewsList.map(i => i.liveTime)));
     return {liveNewsList, latestTime}
 }
 

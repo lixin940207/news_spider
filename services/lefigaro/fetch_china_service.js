@@ -5,11 +5,11 @@ const URL = require('../../config/config').CHINA_NEWS_URLS.LeFigaroURL;
 const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {processStr, getImageHref, ifSelectorExists} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {parseArticle} = require("./common");
-const {ENABLE_TRANSLATE} = require("../../config/config");
+const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 let browser;
 
@@ -46,8 +46,8 @@ crawl = async () => {
 parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
-    news.title.ori = processStr(await element.$eval('.fig-profile__headline', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
+    const oriTitle = processStr(await element.$eval('.fig-profile__headline', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
     news.categories = ['China'];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.split('/')[4] === 'video') {
@@ -59,8 +59,8 @@ parseNews = async (element, idx) => {
         news.newsType = NewsTypes.CardWithImage;
     }
     if (await ifSelectorExists(element, 'p.fig-profile__chapo')){
-        news.summary.ori = processStr(await element.$eval('p.fig-profile__chapo', node => node.innerText));
-        news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori) : "";
+        const oriSummary = processStr(await element.$eval('p.fig-profile__chapo', node => node.innerText));
+        news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = news.imageHref!==undefined?NewsTypes.CardWithImageAndSummary:NewsTypes.CardWithTitleIntro;
     }
     news.article = await parseArticle(browser, news.articleHref);

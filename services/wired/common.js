@@ -1,7 +1,7 @@
 const {ArticleObject} = require("../utils/objects");
 const {processStr, getBodyBlockList} = require("../utils/util");
-const {ENABLE_TRANSLATE} = require("../../config/config");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
+const LANG = require("../../config/config").LANGUAGE.WIRED;
 
 acceptCookie = async (page) => {
         await Promise.all([
@@ -22,16 +22,18 @@ parseArticle = async (browser, url) => {
 
     const mainElement = await pageContent.$('article.article.main-content')
 
-    article.title.ori = processStr(await mainElement.$eval('header.article__content-header h1[data-testid="ContentHeaderHed"]', node=>node.innerText));
-    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori): "";
-    article.summary.ori = await mainElement.$eval('div[data-testid="ContentHeaderAccreditation"]', node=>node.innerText);
+    const oriTitle = processStr(await mainElement.$eval('header.article__content-header h1[data-testid="ContentHeaderHed"]', node=>node.innerText));
+    article.title = await asyncTranslate(oriTitle, LANG);
+    const oriSummary = await mainElement.$eval('div[data-testid="ContentHeaderAccreditation"]', node=>node.innerText);
+    article.summary = await asyncTranslate(oriSummary, LANG);
     article.articleHref = url;
     article.publishTime = new Date(await pageContent.$eval('div[data-testid="ContentHeaderTitleBlockWrapper"] time[data-testid="ContentHeaderPublishDate"]', node=>node.innerText));
 
     article.bodyBlockList = await getBodyBlockList(pageContent,
         'div.grid-layout__content div.body.body__container.article__body div.body__inner-container p,' +
-        'div.grid-layout__content div.body.body__container.article__body div.body__inner-container figure.asset-embed picture img');
-    article.bodyBlockList = article.bodyBlockList.filter(block => block.ori !== 'FEATURED VIDEO' || block.ori !== '');
+        'div.grid-layout__content div.body.body__container.article__body div.body__inner-container figure.asset-embed picture img',
+        LANG);
+    article.bodyBlockList = article.bodyBlockList.filter(block => block.en !== 'FEATURED VIDEO' || block.en !== '');
     return article;
 }
 

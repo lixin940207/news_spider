@@ -8,7 +8,9 @@ const logger = require('../../config/logger');
 const {parseChineseArticle} = require("./common");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
+const {asyncTranslate} = require("../utils/translations");
 const BASE_URL = 'https://cn.nytimes.com';
+const LANG = 'zh';
 
 let browser;
 
@@ -48,11 +50,11 @@ crawl = async () => {
 parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
-    news.title.ori = await element.$eval('h3', node => node.innerText);
-    news.title.cn = news.title.ori;
+    const oriTitle = await element.$eval('h3', node => node.innerText);
+    news.title = await asyncTranslate(oriTitle, LANG);
     news.articleHref = BASE_URL + await element.$eval('a', node=>node.getAttribute('href'))
-    news.summary.ori = await element.$eval('p.summary', node => node.innerText);
-    news.summary.cn = news.summary.ori;
+    const oriSummary = await element.$eval('p.summary', node => node.innerText);
+    news.summary = await asyncTranslate(oriSummary, LANG);
     news.imageHref = await getImageHref(element);
     if (!news.imageHref.startsWith('http')){
         news.imageHref = await element.$eval('img',node=>node.getAttribute('data-url'));

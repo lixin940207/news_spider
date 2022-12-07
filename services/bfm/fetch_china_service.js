@@ -3,15 +3,15 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.BFMURL;
 const BASE_URL = require('../../config/config').ORIGINAL_URLS.BFMURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToDetailPageAndParse} = require("./common");
 const {ifSelectorExists, getImageHref, determineCategory} = require("../utils/util");
+const LANG = require('../../config/config').LANGUAGE.BFM;
 
 moment.locale('en');
 
@@ -51,23 +51,26 @@ crawl = async () => {
 parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
+    let oriTitle;
     if (await ifSelectorExists(element, '.title_une_item')){
-        news.title.ori = await element.$eval('.title_une_item', node=>node.innerText);
+        oriTitle = await element.$eval('.title_une_item', node=>node.innerText);
     }else{
-        news.title.ori = await element.$eval('.content_item_title', node => node.innerText);
+        oriTitle = await element.$eval('.content_item_title', node => node.innerText);
     }
-    if (!determineCategory(news.title.ori).includes('China')){
+    if (!determineCategory(oriTitle).includes('China')){
         return;
     }
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
+    news.title = await asyncTranslate(oriTitle, LANG);
     news.categories = ['China'];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
-    if (news.articleHref.startsWith('/')) news.articleHref = BASE_URL + news.articleHref;
+    if (news.articleHref.startsWith('/')) {
+        news.articleHref = BASE_URL + news.articleHref;
+    }
     news.imageHref = await getImageHref(element);
     news.newsType = NewsTypes.CardWithImage;
     if (await ifSelectorExists(element, '[class*="item_chapo"]')){
-        news.summary.ori = await element.$eval('[class*="item_chapo"]', node=>node.innerText);
-        news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
+        const oriSummary = await element.$eval('[class*="item_chapo"]', node=>node.innerText);
+        news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.isVideo = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_video');

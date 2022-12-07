@@ -3,21 +3,22 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.BFMURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
 const {processStr, getImageHref, determineCategory} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToDetailPageAndParse, parseLiveNews} = require("./common");
+const LANG = require('../../config/config').LANGUAGE.BFM;
+
 moment.locale('en');
 
 let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
-    logger.info('BFM new crawling start.'+  current_ts)
+    logger.info('BFM new crawling start.' + current_ts)
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -35,7 +36,7 @@ crawl = async () => {
     for (let i = 0; i < elementList.length; i++) {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const newsResult = allNewsResult.filter(i=>i!==undefined);
+    const newsResult = allNewsResult.filter(i => i !== undefined);
 
     logger.info('BFM parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
@@ -48,7 +49,7 @@ crawl = async () => {
 }
 
 parseNews = async (element, idx) => {
-    if ((await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_externe')){
+    if ((await element.evaluate(node => node.getAttribute('class'))).includes('content_type_externe')) {
         return;
     }
     const news = new NewsObject();
@@ -56,16 +57,19 @@ parseNews = async (element, idx) => {
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.startsWith('/')) news.articleHref = URL + news.articleHref;
     news.imageHref = await getImageHref(element);
-    if ((await element.$$('.title_une_item')).length > 0){
-        news.title.ori = processStr(await element.$eval('.title_une_item', node=>node.innerText));
-    }else{
-        news.title.ori = processStr(await element.$eval('.content_item_title', node => node.innerText));
+    let oriTitle;
+    if ((await element.$$('.title_une_item')).length > 0) {
+        oriTitle = processStr(await element.$eval('.title_une_item', node => node.innerText));
+    } else {
+        oriTitle = processStr(await element.$eval('.content_item_title', node => node.innerText));
     }
-    news.categories = determineCategory(news.title.ori);
-    news.isLive = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_live');
-    news.isVideo = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_video');
-    if (news.isLive && news.title.ori.startsWith('EN DIRECT - ')) news.title.ori = news.title.ori.split('EN DIRECT - ')[1];
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+    news.categories = determineCategory(oriTitle);
+    news.isLive = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_live');
+    news.isVideo = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_video');
+    if (news.isLive && oriTitle.startsWith('EN DIRECT - ')) {
+        oriTitle = oriTitle.split('EN DIRECT - ')[1];
+    }
+    news.title = await asyncTranslate(oriTitle, LANG);
 
     news.newsType = NewsTypes.CardWithImage;
     if (news.isLive) {
@@ -75,10 +79,10 @@ parseNews = async (element, idx) => {
         news.newsType = NewsTypes.CardWithImageAndLive;
     } else {
         const article = await goToDetailPageAndParse(browser, news.articleHref);
-        if(article !== null){
+        if (article !== null) {
             news.article = article;
             news.publishTime = news.article.publishTime
-        }else{
+        } else {
             return;
         }
     }

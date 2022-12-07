@@ -5,12 +5,12 @@ const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
 const logger = require("../../config/logger");
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref, ifSelectorExists} = require("../utils/util");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').CHINA_NEWS_URLS.LeMondeURL;
 const {goToArticlePageAndParse} = require('./common');
+const LANG = require("../../config/config").LANGUAGE.LeMonde;
 
 let browser;
 
@@ -46,14 +46,14 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a.teaser__link', node => node.getAttribute('href'));
-    news.title.ori = processStr(await element.$eval('.teaser__title', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
+    const oriTitle = processStr(await element.$eval('.teaser__title', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
     news.imageHref = await getImageHref(element, 'picture source');
     news.categories = ['China'];
     news.newsType = NewsTypes.CardWithImage;
     if (await ifSelectorExists(element,'.teaser__desc')) {
-        news.summary.ori = processStr(await element.$eval('.teaser__desc', node => node.innerText));
-        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
+        const oriSummary = processStr(await element.$eval('.teaser__desc', node => node.innerText));
+        news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);

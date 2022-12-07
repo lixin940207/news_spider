@@ -1,6 +1,7 @@
 const categories = require('./categories');
-const {pushToQueueAndWaitForTranslateRes} = require("./translations");
+const {asyncTranslate} = require("./translations");
 const {ENABLE_TRANSLATE} = require("../../config/config");
+const assert = require("assert");
 
 async function ifSelectorExists(element, selector) {
     return (await element.$$(selector)).length > 0;
@@ -47,7 +48,7 @@ function getDisplayOrder(ranking, current_ts) {
     return ranking * 0.01 - current_ts;
 }
 
-async function getBodyBlockList(element, selectors) {
+async function getBodyBlockList(element, selectors, ori) {
     let blockList = await element.$$eval(selectors,  nodes=> nodes.map(
             n => {
                 console.log(n.outerHTML)
@@ -117,26 +118,34 @@ async function getBodyBlockList(element, selectors) {
         ));
     blockList = blockList.filter(i=>i!==undefined && i!==null);
     if(ENABLE_TRANSLATE){
-        blockList = await Promise.all(blockList.map(async i=>{
-            if(i.type!=='img' && i.type !== 'ul'){
-                i.ori = processStr(i.ori);
-                i.cn = await pushToQueueAndWaitForTranslateRes(i.ori);
-            }else if(i.type === 'ul'){
-                i.cn = [];
-                for (let j = 0; j < i.ori.length; j++) {
-                    i.ori[j] = processStr(i.ori[j]);
-                    i.cn.push(await pushToQueueAndWaitForTranslateRes(i.ori[j]));
-                }
+        const ul_texts = blockList.filter(i=>i.type === 'ul').map(i=>i.ori);
+        const ul_texts_prediction = [];
+        for (let i = 0; i < ul_texts.length; i++) {
+            ul_texts_prediction.append(await asyncTranslate(ul_texts, ori));
+        }
+        const p_texts = blockList.filter(i=>['p', 'h2', 'blockquote'].includes(i.type)).map(i=>processStr(i.ori))
+        const p_texts_prediction = await asyncTranslate(p_texts, ori);
+
+        assert(p_texts.length === p_texts_prediction.en.length)
+        assert(p_texts.length === p_texts_prediction.fr.length)
+        assert(p_texts.length === p_texts_prediction.zh.length)
+
+        for (let i = blockList.length - 1; i >= 0; i--) {
+            if (blockList[i].type === 'ul') {
+                blockList[i] = ul_texts_prediction.pop()
+            } else if (['p', 'h2', 'blockquote'].includes(blockList[i].type)) {
+                delete blockList[i].ori;
+                blockList[i].en = p_texts_prediction.en.pop();
+                blockList[i].fr = p_texts_prediction.fr.pop();
+                blockList[i].zh = p_texts_prediction.zh.pop();
             }
-            return i;
-        }));
+        }
     }
     return blockList;
 }
 
 function processStr(str) {
     return str.trim().replace(/(\n)+/, ' - ');
-
 }
 
 module.exports = {

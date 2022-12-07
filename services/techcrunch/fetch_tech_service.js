@@ -2,14 +2,14 @@ const puppeteer = require('puppeteer');
 const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
-const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {parseArticle, acceptCookie} = require("./common");
 const {ifSelectorExists, getImageHref} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
+const LANG = require("../../config/config").LANGUAGE.TechCrunch;
 
 const BASE_URL = "https://techcrunch.com"
 const TECH_URL = require('../../config/config').TECHNOLOGY.TechCrunchURL;
@@ -74,8 +74,8 @@ parseNews = async (element, idx, category) => {
         return null;
     }
 
-    news.title.ori = processStr(await element.$eval('header.post-block__header h2.post-block__title', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+    const oriTitle = processStr(await element.$eval('header.post-block__header h2.post-block__title', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
 
     news.imageHref = await getImageHref(element, 'footer.post-block__footer img');
     news.articleHref = BASE_URL + await element.$eval('header.post-block__header h2.post-block__title a.post-block__title__link', node=>node.getAttribute('href'));
@@ -83,11 +83,11 @@ parseNews = async (element, idx, category) => {
     news.publishTime = news.article.publishTime;
 
     news.newsType = NewsTypes.CardWithImageAndSummary;
-    news.summary.ori = await element.$eval('div.post-block__content', node => node.innerText);
-    news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori) : "";
+    const oriSummary = await element.$eval('div.post-block__content', node => node.innerText);
+    news.summary = await asyncTranslate(oriSummary, LANG);
 
     news.categories = [category];
-    logger.info("parsed news ", { title: news.title.ori});
+    logger.info("parsed news ", { href: news.articleHref});
     return news;
 }
 

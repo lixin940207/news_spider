@@ -2,17 +2,16 @@ const puppeteer = require('puppeteer');
 const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
-const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {parseArticle} = require("./common");
 const {processStr, ifSelectorExists, getImageHref} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 
 const BASE_URL = 'https://www.bbc.com';
 const CHINA_URL = require('../../config/config').CHINA_NEWS_URLS.BBCURL;
-
+const LANG = require('../../config/config').LANGUAGE.BBC;
 
 let browser;
 
@@ -61,8 +60,10 @@ crawl = async (URL, category) => {
 parseNews = async (element, idx, category) => {
     const news = new NewsObject();
     news.ranking = idx
-    news.title.ori = processStr(await element.$eval('header[class*="lx-stream-post__header"]', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+
+    const oriTitle = processStr(await element.$eval('header[class*="lx-stream-post__header"]', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
+
     news.newsType = NewsTypes.CardWithTitleWide
     news.categories = [category];
     if(await ifSelectorExists(element, '.lx-stream-related-story')){
@@ -73,7 +74,7 @@ parseNews = async (element, idx, category) => {
         news.publishTime = news.article.publishTime;
         return news;
     }
-    logger.info("parsed news ", news.title.ori);
+    logger.info("parsed news ", news.articleHref);
 }
 
 if (process.env.ENV === 'PRODUCTION') {

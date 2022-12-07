@@ -3,16 +3,17 @@ const News = require('../../models/news')
 const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
-const {ENABLE_TRANSLATE} = require("../../config/config");
 const URL = require('../../config/config').ORIGINAL_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
 const {parseLiveNews} = require("./common");
 const {determineCategory} = require("../utils/util");
+const LANG = require("../../config/config").LANGUAGE.LeParisien;
+
 moment.locale('en');
 
 let browser;
@@ -56,14 +57,16 @@ parseNews = async (element, idx) => {
         return;
     }
     news.imageHref = URL + await element.$eval('img', node=>node.getAttribute('src'));
-    news.title.ori = processStr(await element.$eval('.story-headline', node => node.innerText));
-    news.categories = determineCategory(news.title.ori);
-    news.isLive = news.title.ori.startsWith('DIRECT.');
-    if (news.isLive) news.title.ori = news.title.ori.slice(7,);
-    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
+    let oriTitle = processStr(await element.$eval('.story-headline', node => node.innerText));
+    news.categories = determineCategory(oriTitle);
+    news.isLive = oriTitle.startsWith('DIRECT.');
+    if (news.isLive) {
+        oriTitle = oriTitle.slice(7,);
+    }
+    news.title = await asyncTranslate(oriTitle, LANG);
     if ((await element.$$('.story-subheadline')).length > 0) {
-        news.summary.ori = processStr(await element.$eval('.story-subheadline', node => node.innerText));
-        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
+        const oriSummary = processStr(await element.$eval('.story-subheadline', node => node.innerText));
+        news.summary = await asyncTranslate(oriSummary, LANG);
     }
     news.newsType = NewsTypes.CardWithImage;
     if (news.isLive) {

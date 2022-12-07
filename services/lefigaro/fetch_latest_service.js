@@ -6,10 +6,10 @@ const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
 const {processStr, getImageHref, ifSelectorExists, determineCategory} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {parseLiveNews, parseArticle} = require("./common");
-const {ENABLE_TRANSLATE} = require("../../config/config");
+const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 let browser;
 
@@ -57,10 +57,7 @@ parseNews = async (element, idx) => {
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                     return {
                         ranking:idx,
-                        title: {
-                            ori: title,
-                            cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title) : "",
-                        },
+                        title: await asyncTranslate(title, LANG),
                         categories: determineCategory(title),
                         articleHref,
                         // category: articleHref.split('/')[3],
@@ -81,10 +78,7 @@ parseNews = async (element, idx) => {
                         const articleHref = await node.$eval('a', node => node.getAttribute('href'));
                         const title = processStr(await node.$eval('a', node => node.innerText));
                         return {
-                            title: {
-                                ori:title,
-                                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title): "",
-                            },
+                            title: await asyncTranslate(title, LANG),
                             article: await parseArticle(browser, articleHref),
                         }
                     }
@@ -103,13 +97,9 @@ parseNews = async (element, idx) => {
                         const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                         return {
                             ranking:idx,
-                            title: {
-                                ori: title,
-                                cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title): "",
-                            },
+                            title: await asyncTranslate(title, LANG),
                             categories: determineCategory(title),
                             articleHref,
-                            // category: articleHref.split('/')[3],
                             isLive: true,
                             newsType: NewsTypes.CardWithLive,
                             liveNewsList,
@@ -138,14 +128,14 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     news.newsType = NewsTypes.CardWithTitleWide;
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'));
     news.isLive = news.articleHref.includes('/live/');
-    news.title.ori = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
+    const oriTitle = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
+    news.title = await asyncTranslate(oriTitle, LANG);
     if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')){
-        news.summary.ori = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
-        news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
+        const oriSummary = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
+        news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
-    news.categories = determineCategory(news.title.ori);
+    news.categories = determineCategory(oriTitle);
     let hasImage = false;
     if((await element.$$('img')).length > 0){
         const imageDataSrc = (await element.$eval('img', node => node.getAttribute('srcset') || node.getAttribute('data-srcset'))).split(' ');
@@ -170,9 +160,7 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
         news.relatedNewsList = await Promise.all(relatedElementList.map(async node => {
             const title = processStr(await node.$eval('a', n => n.innerText));
             return {
-                title: {ori: title,
-                    cn: ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(title): ""
-                },
+                title: await asyncTranslate(title, LANG),
                 article: await parseArticle(browser, await node.$eval('a', n => n.getAttribute('href')))
             }
         }));
@@ -195,15 +183,15 @@ parseProfileOrLiveNews = async (element, idx, isLive) => {
     if ((await element.$$('[class*="fig-profile__headline"]')).length === 0){
         console.log(await element.evaluate(node=>node.outerHTML))
     }
-    news.title.ori = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori):"";
-    news.categories = determineCategory(news.title.ori);
+    const oriTitle = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = determineCategory(oriTitle);
     news.articleHref = await element.$eval('a.fig-profile__link', node => node.getAttribute('href'));
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
     if(news.imageHref !== undefined)    news.newsType = isLive? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithImage
-    news.summary.ori = processStr(await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText));
-    news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori):"";
+    const oriSummary = processStr(await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText));
+    news.summary = await asyncTranslate(oriSummary, LANG);
     if (isLive) {
         const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
         news.liveNewsList = liveNewsList;
@@ -219,14 +207,14 @@ parseEnsembleLiveNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithImageAndLive;
-    news.title.ori = processStr(await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
-    news.categories = determineCategory(news.title.ori);
+    const oriTitle = processStr(await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = determineCategory(oriTitle);
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'))
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
-    news.summary.ori = processStr(await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText));
-    news.summary.cn = ENABLE_TRANSLATE ? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
+    const oriSummary = processStr(await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText));
+    news.summary = await asyncTranslate(oriSummary, LANG);
     news.isLive = true
     const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
     news.liveNewsList = liveNewsList;

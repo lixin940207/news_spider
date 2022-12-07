@@ -3,16 +3,16 @@ const schedule = require('node-schedule');
 require('../mongodb_connection');
 const News = require('../../models/news');
 const URL = require('../../config/config').ORIGINAL_URLS.BBCURL;
-const {ENABLE_TRANSLATE} = require('../../config/config');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {processStr} = require("../utils/util");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {ifSelectorExists} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {parseArticle, parseLiveNews} = require("./common");
 const {determineCategory} = require("../utils/util");
 const BASE_URL = "https://www.bbc.com";
+const LANG = require('../../config/config').LANGUAGE.BBC;
 
 let browser;
 
@@ -77,15 +77,12 @@ parseNews = async (element, idx) => {
             const articleHref = await element.evaluate(node => node.getAttribute('href'));
             const title = processStr(await element.evaluate(node => node.innerText));
             return {
-                title: {
-                    ori: title,
-                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(title) : "",
-                },
+                title: await asyncTranslate(title, LANG),
                 article: await parseArticle(browser, BASE_URL + articleHref)
             }
         }))
         news.newsType = NewsTypes.CardWithImageAndSubtitle;
-        if (news.relatedNewsList.length < 3 && news.relatedNewsList.map(news => news.title.ori.length).reduce((a,b)=>a+b, 0) < 80) {
+        if (news.relatedNewsList.length < 3 && news.relatedNewsList.map(news => news.title.en.length).reduce((a,b)=>a+b, 0) < 80) {
             news.newsType = NewsTypes.CardWithImage;
         }
         if (news.isLive) {
@@ -114,6 +111,10 @@ getCommonPart = async (element) => {
     if (!news.articleHref.startsWith('http')) {
         news.articleHref = BASE_URL + news.articleHref;
     }
+    logger.debug("started to parse news", {
+        articleHref: news.articleHref,
+        platform: 'BBC',
+    })
     // const image_element = await element.$('div.gs-c-promo-image');
     if (await ifSelectorExists(element, 'img')) {
         news.imageHref = (await element.$eval('img', node => {
@@ -123,12 +124,12 @@ getCommonPart = async (element) => {
             return node.getAttribute('src');
         })).replace('{width}', '240');
     }
-    news.title.ori = processStr(await element.$eval('[class*="nw-o-link-split__text"]', node => node.innerText));
-    news.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.title.ori): "";
-    news.categories = determineCategory(news.title.ori);
+    const oriTitle = processStr(await element.$eval('[class*="nw-o-link-split__text"]', node => node.innerText));
+    news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = determineCategory(news.title.en);
     if ((await element.$$('p[class*="gs-c-promo-summary"]')).length > 0) {
-        news.summary.ori = processStr(await element.$eval('p[class*="gs-c-promo-summary"]', node => node.innerText));
-        news.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(news.summary.ori): "";
+        const oriSummary = processStr(await element.$eval('p[class*="gs-c-promo-summary"]', node => node.innerText));
+        news.summary = await asyncTranslate(oriSummary, LANG);
     }
     if ((await element.$$('time[class*="qa-status-date"][datetime]')).length > 0) {
         news.publishTime = new Date(await element.$eval('time[class*="qa-status-date"][datetime]', node => node.getAttribute('datetime')));
@@ -158,7 +159,7 @@ if (process.env.ENV === 'PRODUCTION') {
     crawl()
         .then(() => process.exit())
         .catch(r => {
-                logger.error(r);
+                logger.error(r.stack);
                 process.exit(1);
             }
         );

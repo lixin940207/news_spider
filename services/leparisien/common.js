@@ -1,10 +1,10 @@
 const moment = require('moment');
 const logger = require("../../config/logger");
-const {pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
-const {ENABLE_TRANSLATE} = require("../../config/config");
+const LANG = require("../../config/config").LANGUAGE.LeParisien;
 
 goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
@@ -19,10 +19,10 @@ goToArticlePageAndParse = async (browser, url) => {
         logger.error(url + 'has problem!')
     }
 
-    article.title.ori = processStr(await pageContent.$eval('article header [class*="title_xl"]', node => node.innerText));
-    article.title.cn = ENABLE_TRANSLATE?await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
-    article.summary.ori = processStr(await pageContent.$eval('article header [class*="subheadline"]', node => node.innerText));
-    article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
+    const oriTitle = processStr(await pageContent.$eval('article header [class*="title_xl"]', node => node.innerText));
+    article.title = await asyncTranslate(oriTitle, LANG);
+    const oriSummary = processStr(await pageContent.$eval('article header [class*="subheadline"]', node => node.innerText));
+    article.summary = await asyncTranslate(oriSummary, LANG);
     const timeText = await pageContent.$eval('article section#left [class*="timestamp"]', node => node.innerText);
     let date = '';
     if (timeText.includes('modifié')) {
@@ -40,7 +40,8 @@ goToArticlePageAndParse = async (browser, url) => {
     article.bodyBlockList = await getBodyBlockList(pageContent,
         'article section#left [class*="article-section"] .content > p,' +
         'article section#left [class*="article-section"] .content > h2,' +
-        'article section#left [class*="article-section"] .content .essential-card_container_element *');
+        'article section#left [class*="article-section"] .content .essential-card_container_element *',
+        LANG);
     return article;
 }
 
@@ -54,10 +55,10 @@ parseLiveNews = async (browser, url) => {
         logger.error(url + 'has problem!')
     }
     article.articleHref = url;
-    article.title.ori = processStr(await pageLive.$eval('header.article_header h1', node => node.innerText));
-    article.title.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.title.ori):"";
-    article.summary.ori = processStr(await pageLive.$eval('header.article_header h2', node => node.innerText));
-    article.summary.cn = ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(article.summary.ori):"";
+    const oriTitle = processStr(await pageLive.$eval('header.article_header h1', node => node.innerText));
+    article.title = await asyncTranslate(oriTitle, LANG);
+    const oriSummary = processStr(await pageLive.$eval('header.article_header h2', node => node.innerText));
+    article.summary = await asyncTranslate(oriSummary, LANG);
 
     // const liveElementList = await pageLive.$$('article div[class*="article-section"] section.content p[class*="paragraph"]');
     // const liveNewsListTemp = await Promise.all(liveElementList.map(async element => {
@@ -114,19 +115,19 @@ parseLiveNews = async (browser, url) => {
 
     const liveElementDate = await pageLive.$$('article div[class*="article-section"] section.content div.card-date');
     const liveElementText = await pageLive.$$('article div[class*="article-section"] section.content div.standard-card_container');
-    if ( liveElementDate.length !== liveElementText.length) {
+    if (liveElementDate.length !== liveElementText.length) {
         console.log('hahahahha');
     }
     const liveElementDateTemp = await Promise.all(liveElementDate.map(async element => {
         const timeText = await element.evaluate(node => node.innerText);
         const date = new Date();
-        if (timeText === 'Midi'){
+        if (timeText === 'Midi') {
             date.setHours(12);
             date.setMinutes(0);
-        } else if (timeText.includes('heure')){
+        } else if (timeText.includes('heure')) {
             date.setHours(Number(timeText.split('heure')[0]));
             date.setMinutes(0);
-        }else{
+        } else {
             date.setHours(Number(timeText.split(':')[0]));
             date.setMinutes(Number(timeText.split(':')[1]));
         }
@@ -141,22 +142,16 @@ parseLiveNews = async (browser, url) => {
             liveTitle = '';
         }
         const summary = await getBodyBlockList(element, 'div.standard-card_container_element p,' +
-            'div.standard-card_container_element ul');
+            'div.standard-card_container_element ul', LANG);
         return {
-            liveTitle: {
-                ori: liveTitle,
-                cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(liveTitle):""
-            },
-            liveTime: liveElementDateTemp[i] === undefined? new Date() : liveElementDateTemp[i],
+            liveTitle: await asyncTranslate(liveTitle, LANG),
+            liveTime: liveElementDateTemp[i] === undefined ? new Date() : liveElementDateTemp[i],
             liveContent: {
-                bodyBlockList: {
-                    ori: summary,
-                    cn: ENABLE_TRANSLATE? await pushToQueueAndWaitForTranslateRes(summary):summary
-                }
+                bodyBlockList: await asyncTranslate(summary, LANG)
             }
         }
     }))
-    let latestTime = Math.max.apply(null,liveNewsList.map(i=>i.liveTime));
+    let latestTime = Math.max.apply(null, liveNewsList.map(i => i.liveTime));
     if (latestTime == null) {
         latestTime = new Date();
     } else {
