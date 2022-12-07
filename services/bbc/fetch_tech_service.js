@@ -41,13 +41,13 @@ crawl = async (URL, category) => {
 
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        allNewsResult.push(await parseNews(news_list[i], i+1, category));
+        allNewsResult.push(await parseNews(news_list[i], i + 1, category));
     }
-    allNewsResult = allNewsResult.filter(i => i!==undefined);
+    allNewsResult = allNewsResult.filter(i => i !== undefined);
     logger.info('BBC-parsed all objects.', {
         category
     })
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "BBC";
         return element;
     }));
@@ -67,7 +67,7 @@ parseNews = async (element, idx, category) => {
 
     news.imageHref = await getImageHref(element, 'div.gs-c-promo-image img');
     // if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;
-    news.articleHref = BASE_URL + await element.$eval('div.gs-c-promo-body a.gs-c-promo-heading', node=>node.getAttribute('href'));
+    news.articleHref = BASE_URL + await element.$eval('div.gs-c-promo-body a.gs-c-promo-heading', node => node.getAttribute('href'));
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
 
@@ -90,7 +90,7 @@ parseNews = async (element, idx, category) => {
         }
     }
     news.categories = [category];
-    logger.info("parsed news ", { href: news.articleHref});
+    logger.info("parsed news ", {href: news.articleHref});
     return news;
 }
 

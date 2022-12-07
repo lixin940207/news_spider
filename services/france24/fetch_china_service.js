@@ -30,7 +30,7 @@ crawl = async () => {
     await page.waitForSelector('main div[class*="t-content"]', {timeout: 0})
     logger.info('loaded')
     const containerList = (await page.$$('main div[class*="t-content"] section.t-content__section-pb')).slice(0, 3);
-    const elementList = (await Promise.all(containerList.map(async node=> {
+    const elementList = (await Promise.all(containerList.map(async node => {
         return await node.$$('div[class*="m-item-list-article"]')
     }))).flat();
 
@@ -38,10 +38,10 @@ crawl = async () => {
     for (let i = 0; i < elementList.length; i++) {
         allNewsResult.push(await parseNews(elementList[i], i))
     }
-    allNewsResult = allNewsResult.filter(i=>i!==undefined);
+    allNewsResult = allNewsResult.filter(i => i !== undefined);
 
     logger.info('France24 parsing all objects finish.')
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "France24";
         return element;
     }));
@@ -54,7 +54,7 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
 
     const oriTitle = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
-    if(!determineCategory(oriTitle).includes('China')){
+    if (!determineCategory(oriTitle).includes('China')) {
         return;
     }
     news.title = await asyncTranslate(oriTitle, LANG);

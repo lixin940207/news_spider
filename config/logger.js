@@ -1,8 +1,8 @@
 const winston = require('winston');
 require('winston-daily-rotate-file');
 
-const { transports } = winston;
-const { File, Console } = transports;
+const {transports} = winston;
+const {File, Console} = transports;
 
 const logger = winston.createLogger({
     transports: [
@@ -30,7 +30,7 @@ logger.add(new Console({
     name: 'base_logger',
     prepend: false,
     datePattern: 'yyyy-MM-dd',
-    level: 'info',
+    level: 'debug',
     label: module.filename,
 
 }));

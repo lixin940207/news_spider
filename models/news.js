@@ -8,7 +8,7 @@ newsSchema = new BaseSchema(
         timestamps: true
     });
 
-newsSchema.index({ createdAt: 1 }, { expireAfterSeconds: 43200 });
+newsSchema.index({createdAt: 1}, {expireAfterSeconds: 43200});
 
 const NewsModel = mongoose.model('news', newsSchema);
 
@@ -47,9 +47,9 @@ async function upsertNews(news) {
 }
 
 async function bulkUpsertNews(newsArr) {
-    return await NewsModel.bulkWrite(newsArr.map(item=>{
+    return await NewsModel.bulkWrite(newsArr.map(item => {
         return {
-            updateOne:{
+            updateOne: {
                 filter: {articleHref: item.articleHref},
                 update: {$set: item},
                 upsert: true,

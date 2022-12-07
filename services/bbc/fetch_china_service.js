@@ -41,13 +41,13 @@ crawl = async (URL, category) => {
 
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        allNewsResult.push(await parseNews(news_list[i], i+1, category));
+        allNewsResult.push(await parseNews(news_list[i], i + 1, category));
     }
-    allNewsResult = allNewsResult.filter(i => i!==undefined);
+    allNewsResult = allNewsResult.filter(i => i !== undefined);
     logger.info('BBC-parsed all objects.', {
         category
     })
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "BBC";
         return element;
     }));
@@ -66,10 +66,10 @@ parseNews = async (element, idx, category) => {
 
     news.newsType = NewsTypes.CardWithTitleWide
     news.categories = [category];
-    if(await ifSelectorExists(element, '.lx-stream-related-story')){
+    if (await ifSelectorExists(element, '.lx-stream-related-story')) {
         news.imageHref = await getImageHref(element, '.lx-stream-related-story img');
         if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;
-        news.articleHref = BASE_URL + await element.$eval('a[class*="lx-stream-post__header-link"]', node=>node.getAttribute('href'));
+        news.articleHref = BASE_URL + await element.$eval('a[class*="lx-stream-post__header-link"]', node => node.getAttribute('href'));
         news.article = await parseArticle(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
         return news;

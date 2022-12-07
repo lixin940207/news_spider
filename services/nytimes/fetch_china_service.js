@@ -34,11 +34,11 @@ crawl = async () => {
 
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        allNewsResult.push(await parseNews(news_list[i], i+1));
+        allNewsResult.push(await parseNews(news_list[i], i + 1));
     }
 
     logger.info('NYTimes-parsed all objects.')
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "NYTimes";
         return element;
     }));
@@ -52,12 +52,12 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
     const oriTitle = await element.$eval('h3', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
-    news.articleHref = BASE_URL + await element.$eval('a', node=>node.getAttribute('href'))
+    news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'))
     const oriSummary = await element.$eval('p.summary', node => node.innerText);
     news.summary = await asyncTranslate(oriSummary, LANG);
     news.imageHref = await getImageHref(element);
-    if (!news.imageHref.startsWith('http')){
-        news.imageHref = await element.$eval('img',node=>node.getAttribute('data-url'));
+    if (!news.imageHref.startsWith('http')) {
+        news.imageHref = await element.$eval('img', node => node.getAttribute('data-url'));
     }
     news.newsType = NewsTypes.CardWithImageAndSummary;
     news.categories = ['China'];
@@ -71,10 +71,10 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("39 * * * *", crawl);
 } else {
     crawl()
-    .then(() => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
+        .then(() => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
 }

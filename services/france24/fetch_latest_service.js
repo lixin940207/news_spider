@@ -18,7 +18,7 @@ let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
-    logger.info('France24 new crawling start.'+ current_ts);
+    logger.info('France24 new crawling start.' + current_ts);
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -31,7 +31,7 @@ crawl = async () => {
     logger.info('France24 loaded')
     const containerList = (await page.$$('main div[class*="t-content"] section.t-content__section-pb')).slice(0, 3);
     //div[class*="m-item-list-article"]
-    const elementList = (await Promise.all(containerList.map(async node=> {
+    const elementList = (await Promise.all(containerList.map(async node => {
         return await node.$$('div[class*="m-item-list-article"]')
     }))).flat();
 
@@ -42,11 +42,11 @@ crawl = async () => {
     logger.info('France24 parsing all objects finish.')
     await News.bulkUpsertNews(allNewsResult
         .filter(element => element !== undefined)
-        .map(element=>{
-        element.platform = 'France24';
-        element.displayOrder = element.ranking * 0.01 - current_ts;
-        return element;
-    }));
+        .map(element => {
+            element.platform = 'France24';
+            element.displayOrder = element.ranking * 0.01 - current_ts;
+            return element;
+        }));
     logger.info('France24 inserting into db finish.');
     await browser.close();
 }
@@ -73,7 +73,7 @@ parseNews = async (element, idx) => {
         news.relatedNewsList = await Promise.all(relatedNewsElements.map(async element => {
             const rNews = new NewsObject();
             rNews.articleHref = BASE_URL + await element.evaluate(node => node.getAttribute('href'));
-            const oriTitle = await element.evaluate(node=>node.innerText);
+            const oriTitle = await element.evaluate(node => node.innerText);
             rNews.title = await asyncTranslate(oriTitle, LANG);
             rNews.article = await goToArticlePageAndParse(browser, rNews.articleHref);
             return rNews;

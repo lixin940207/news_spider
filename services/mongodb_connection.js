@@ -11,12 +11,12 @@ if (process.env.ENV === 'PRODUCTION') {
     uri = `mongodb+srv://${replicaSetHosts}/${database}?ssl=false&replicaSet=rs0`;
 }
 
-mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: false, connectWithNoPrimary: true });
+mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: false, connectWithNoPrimary: true});
 mongoose.set('useCreateIndex', true)
 const db = mongoose.connection;
 
 
-db.on('open', ()=>{
+db.on('open', () => {
     logger.info('db connected!');
 });
 

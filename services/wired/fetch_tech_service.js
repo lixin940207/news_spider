@@ -20,7 +20,8 @@ crawl = async (URL, category) => {
         URL,
     });
     browser = await puppeteer.launch({
-        args: ['--no-sandbox']});
+        args: ['--no-sandbox']
+    });
     const page = await browser.newPage();
 
     await page.goto(URL, {
@@ -47,13 +48,13 @@ crawl = async (URL, category) => {
 
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        allNewsResult.push(await parseNews(news_list[i], i+1, category));
+        allNewsResult.push(await parseNews(news_list[i], i + 1, category));
     }
-    allNewsResult = allNewsResult.filter(i => i!==undefined);
+    allNewsResult = allNewsResult.filter(i => i !== undefined);
     logger.info('Wired parsed all objects.', {
         category
     })
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "Wired";
         return element;
     }));
@@ -71,7 +72,7 @@ parseNews = async (element, idx, category) => {
     news.title = await asyncTranslate(oriTitle, LANG);
 
     news.imageHref = await getImageHref(element, 'picture.summary-item__image img');
-    news.articleHref = await element.$eval('a.summary-item__hed-link', node=>node.getAttribute('href'));
+    news.articleHref = await element.$eval('a.summary-item__hed-link', node => node.getAttribute('href'));
     if (!news.articleHref.startsWith(TECH_URL)) {
         news.articleHref = TECH_URL + news.articleHref;
     }
@@ -84,7 +85,7 @@ parseNews = async (element, idx, category) => {
     news.newsType = NewsTypes.CardWithImage;
 
     news.categories = [category];
-    logger.info("parsed news ", { href: news.articleHref});
+    logger.info("parsed news ", {href: news.articleHref});
     return news;
 }
 

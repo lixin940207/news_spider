@@ -1,4 +1,3 @@
-
 module.exports = {
     ORIGINAL_URLS: {
         BBCURL: 'https://www.bbc.com/news',
@@ -7,7 +6,7 @@ module.exports = {
         LeMondeURL: 'https://www.lemonde.fr/',
         France24URL: 'https://www.france24.com/fr/france/',
         LeParisienURL: 'https://www.leparisien.fr',
-        BFMURL:'https://www.bfmtv.com',
+        BFMURL: 'https://www.bfmtv.com',
     },
     CHINA_NEWS_URLS: {
         BBCURL: 'https://www.bbc.com/news/world/asia/china',

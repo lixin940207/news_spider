@@ -82,7 +82,7 @@ parseNews = async (element, idx) => {
             }
         }))
         news.newsType = NewsTypes.CardWithImageAndSubtitle;
-        if (news.relatedNewsList.length < 3 && news.relatedNewsList.map(news => news.title.en.length).reduce((a,b)=>a+b, 0) < 80) {
+        if (news.relatedNewsList.length < 3 && news.relatedNewsList.map(news => news.title.en.length).reduce((a, b) => a + b, 0) < 80) {
             news.newsType = NewsTypes.CardWithImage;
         }
         if (news.isLive) {

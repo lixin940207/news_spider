@@ -16,7 +16,7 @@ let browser;
 crawl = async () => {
     logger.info('LeFigaro china objects start crawling.')
     browser = await puppeteer.launch({
-        timeout:0,
+        timeout: 0,
         args: ['--no-sandbox']
     });
     const page = await browser.newPage();
@@ -34,10 +34,10 @@ crawl = async () => {
     logger.info('LeFigaro parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.flat()
         .filter(element => element !== undefined)
-        .map(element=>{
-        element.platform = "LeFigaro";
-        return element;
-    }));
+        .map(element => {
+            element.platform = "LeFigaro";
+            return element;
+        }));
     logger.info('LeFigaro-inserted into db.')
     await page.close();
     await browser.close();
@@ -55,13 +55,13 @@ parseNews = async (element, idx) => {
     }
     news.newsType = NewsTypes.CardWithTitleWide;
     news.imageHref = await getImageHref(element, 'figure.fig-profile__media img');
-    if (news.imageHref !== undefined){
+    if (news.imageHref !== undefined) {
         news.newsType = NewsTypes.CardWithImage;
     }
-    if (await ifSelectorExists(element, 'p.fig-profile__chapo')){
+    if (await ifSelectorExists(element, 'p.fig-profile__chapo')) {
         const oriSummary = processStr(await element.$eval('p.fig-profile__chapo', node => node.innerText));
         news.summary = await asyncTranslate(oriSummary, LANG);
-        news.newsType = news.imageHref!==undefined?NewsTypes.CardWithImageAndSummary:NewsTypes.CardWithTitleIntro;
+        news.newsType = news.imageHref !== undefined ? NewsTypes.CardWithImageAndSummary : NewsTypes.CardWithTitleIntro;
     }
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;

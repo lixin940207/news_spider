@@ -36,8 +36,8 @@ crawl = async () => {
     for (let i = 0; i < elementList.length; i++) {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const newsResult = allNewsResult.filter(i=>i!==undefined);
-    console.log(newsResult.map(i=>i.publishTime));
+    const newsResult = allNewsResult.filter(i => i !== undefined);
+    console.log(newsResult.map(i => i.publishTime));
 
     logger.info('BFM parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
@@ -52,12 +52,12 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     let oriTitle;
-    if (await ifSelectorExists(element, '.title_une_item')){
-        oriTitle = await element.$eval('.title_une_item', node=>node.innerText);
-    }else{
+    if (await ifSelectorExists(element, '.title_une_item')) {
+        oriTitle = await element.$eval('.title_une_item', node => node.innerText);
+    } else {
         oriTitle = await element.$eval('.content_item_title', node => node.innerText);
     }
-    if (!determineCategory(oriTitle).includes('China')){
+    if (!determineCategory(oriTitle).includes('China')) {
         return;
     }
     news.title = await asyncTranslate(oriTitle, LANG);
@@ -68,14 +68,14 @@ parseNews = async (element, idx) => {
     }
     news.imageHref = await getImageHref(element);
     news.newsType = NewsTypes.CardWithImage;
-    if (await ifSelectorExists(element, '[class*="item_chapo"]')){
-        const oriSummary = await element.$eval('[class*="item_chapo"]', node=>node.innerText);
+    if (await ifSelectorExists(element, '[class*="item_chapo"]')) {
+        const oriSummary = await element.$eval('[class*="item_chapo"]', node => node.innerText);
         news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
-    news.isVideo = (await element.evaluate(node=>node.getAttribute('class'))).includes('content_type_video');
+    news.isVideo = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_video');
     news.article = await goToDetailPageAndParse(browser, news.articleHref);
-    if (news.article === null){
+    if (news.article === null) {
         return;
     }
     news.publishTime = news.article.publishTime;

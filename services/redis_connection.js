@@ -10,15 +10,15 @@ const redisClient = redis.createClient({
     port: redis_port
 });
 
-redisClient.on("ready", function() {
+redisClient.on("ready", function () {
     console.log("redis ready");
 });
 
-redisClient.on("error", function(error) {
+redisClient.on("error", function (error) {
     console.error(error);
 });
 
-const { promisify } = require("util");
+const {promisify} = require("util");
 const getAsync = promisify(redisClient.get).bind(redisClient);
 const rPushAsync = promisify(redisClient.rpush).bind(redisClient);
 const lPopAsync = promisify(redisClient.lpop).bind(redisClient);
@@ -32,7 +32,6 @@ const delAsync = promisify(redisClient.del).bind(redisClient);
 //         redisClient.set(replyObj.sign, translateRes);
 //     }
 // }, 1000)
-
 
 
 module.exports = {

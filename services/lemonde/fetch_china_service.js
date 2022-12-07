@@ -15,7 +15,7 @@ const LANG = require("../../config/config").LANGUAGE.LeMonde;
 let browser;
 
 crawl = async () => {
-    logger.info('LeMonde china objects start crawling.'+ Date.now())
+    logger.info('LeMonde china objects start crawling.' + Date.now())
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -34,7 +34,7 @@ crawl = async () => {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
     logger.info('LeMonde parsing all objects finish.')
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "LeMonde";
         return element;
     }));
@@ -51,7 +51,7 @@ parseNews = async (element, idx) => {
     news.imageHref = await getImageHref(element, 'picture source');
     news.categories = ['China'];
     news.newsType = NewsTypes.CardWithImage;
-    if (await ifSelectorExists(element,'.teaser__desc')) {
+    if (await ifSelectorExists(element, '.teaser__desc')) {
         const oriSummary = processStr(await element.$eval('.teaser__desc', node => node.innerText));
         news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithImageAndSummary;

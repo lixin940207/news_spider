@@ -22,7 +22,8 @@ crawl = async (URL, category) => {
         URL,
     });
     browser = await puppeteer.launch({
-        args: ['--no-sandbox']});
+        args: ['--no-sandbox']
+    });
     const page = await browser.newPage();
 
     await page.goto(URL, {
@@ -47,13 +48,13 @@ crawl = async (URL, category) => {
 
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
-        allNewsResult.push(await parseNews(news_list[i], i+1, category));
+        allNewsResult.push(await parseNews(news_list[i], i + 1, category));
     }
-    allNewsResult = allNewsResult.filter(i => i!==undefined);
+    allNewsResult = allNewsResult.filter(i => i !== undefined);
     logger.info('TechCrunch parsed all objects.', {
         category
     })
-    await News.bulkUpsertNews(allNewsResult.map(element=>{
+    await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "TechCrunch";
         return element;
     }));
@@ -78,7 +79,7 @@ parseNews = async (element, idx, category) => {
     news.title = await asyncTranslate(oriTitle, LANG);
 
     news.imageHref = await getImageHref(element, 'footer.post-block__footer img');
-    news.articleHref = BASE_URL + await element.$eval('header.post-block__header h2.post-block__title a.post-block__title__link', node=>node.getAttribute('href'));
+    news.articleHref = BASE_URL + await element.$eval('header.post-block__header h2.post-block__title a.post-block__title__link', node => node.getAttribute('href'));
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
 
@@ -87,7 +88,7 @@ parseNews = async (element, idx, category) => {
     news.summary = await asyncTranslate(oriSummary, LANG);
 
     news.categories = [category];
-    logger.info("parsed news ", { href: news.articleHref});
+    logger.info("parsed news ", {href: news.articleHref});
     return news;
 }
 
@@ -95,12 +96,12 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("45 * * * *", () => crawl(TECH_URL, "Tech"));
 } else {
     crawl(TECH_URL, "Tech")
-    .then(() => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
+        .then(() => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
 }
 
 

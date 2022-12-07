@@ -20,7 +20,7 @@ let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
-    logger.info('LeParisien new crawling start.'+ current_ts);
+    logger.info('LeParisien new crawling start.' + current_ts);
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -38,7 +38,7 @@ crawl = async () => {
     for (let i = 0; i < elementList.length; i++) {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const newsResult = allNewsResult.filter(i=>i!==undefined);
+    const newsResult = allNewsResult.filter(i => i !== undefined);
     logger.info('LeParisien parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
         element.platform = 'LeParisien';
@@ -53,10 +53,10 @@ parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = 'https:' + await element.$eval('a', node => node.getAttribute('href'));
-    if (news.articleHref.split('/')[3] === 'podcasts'){
+    if (news.articleHref.split('/')[3] === 'podcasts') {
         return;
     }
-    news.imageHref = URL + await element.$eval('img', node=>node.getAttribute('src'));
+    news.imageHref = URL + await element.$eval('img', node => node.getAttribute('src'));
     let oriTitle = processStr(await element.$eval('.story-headline', node => node.innerText));
     news.categories = determineCategory(oriTitle);
     news.isLive = oriTitle.startsWith('DIRECT.');

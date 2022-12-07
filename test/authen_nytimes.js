@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 const {getBodyBlockList} = require("../services/utils/util");
 // const {goToArticlePageAnxdParse} = require("../services/nytimes/common");
 
-(async ()=>{
+(async () => {
     const browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -18,10 +18,10 @@ const {getBodyBlockList} = require("../services/utils/util");
     // const blocks = await bodyElement.$$('div[class*="StoryBodyCompanionColumn"] > div p, '+
     //     'div[class*="StoryBodyCompanionColumn"] > div h2')
 
-    console.log( await Promise.all(liveElementList.map(async element => {
+    console.log(await Promise.all(liveElementList.map(async element => {
         const liveTitle = await element.$eval('[itemprop="headline"]', node => node.innerText);
         const liveHref = url + await element.$eval('[itemprop="headline"] a', node => node.getAttribute('href'));
-        const liveTime = new Date(await page.$eval('time[datetime]', node=>node.getAttribute('datetime')));
+        const liveTime = new Date(await page.$eval('time[datetime]', node => node.getAttribute('datetime')));
         return {
             liveTitle: {ori: liveTitle},
             liveHref,

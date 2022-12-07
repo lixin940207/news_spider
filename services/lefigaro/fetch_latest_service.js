@@ -15,9 +15,9 @@ let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
-    logger.info('LeFigaro a new crawling start.'+ current_ts);
+    logger.info('LeFigaro a new crawling start.' + current_ts);
     browser = await puppeteer.launch({
-        timeout:0,
+        timeout: 0,
         args: ['--no-sandbox'],
     });
     const page = await browser.newPage();
@@ -33,7 +33,7 @@ crawl = async () => {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
     logger.info('LeFigaro parsed all objects.')
-    await News.bulkUpsertNews(allNewsResult.flat().map(element=>{
+    await News.bulkUpsertNews(allNewsResult.flat().map(element => {
         element.platform = 'LeFigaro';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
@@ -56,7 +56,7 @@ parseNews = async (element, idx) => {
                     let title = await node.$eval('a', node => node.innerText);
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                     return {
-                        ranking:idx,
+                        ranking: idx,
                         title: await asyncTranslate(title, LANG),
                         categories: determineCategory(title),
                         articleHref,
@@ -68,7 +68,7 @@ parseNews = async (element, idx) => {
                     }
                 }
             }));
-            return [news].concat(otherNews.filter(i=>i!==undefined))
+            return [news].concat(otherNews.filter(i => i !== undefined))
         } else {
             if ((await element.$$('ul li .fig-live-mark')).length > 0) {
                 const news = await parseEnsembleNews(element, idx, false);
@@ -83,10 +83,10 @@ parseNews = async (element, idx) => {
                         }
                     }
                 }))
-                relatedNewsListTemp = relatedNewsListTemp.filter(i=>i!==undefined)
-                if (relatedNewsListTemp === []){
+                relatedNewsListTemp = relatedNewsListTemp.filter(i => i !== undefined)
+                if (relatedNewsListTemp === []) {
                     news.newsType = NewsTypes.CardWithImage;
-                }else{
+                } else {
                     news.newsType = NewsTypes.CardWithImageAndSubtitle;
                     news.relatedNewsList = relatedNewsListTemp;
                 }
@@ -96,7 +96,7 @@ parseNews = async (element, idx) => {
                         let title = processStr(await node.$eval('a', node => node.innerText));
                         const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                         return {
-                            ranking:idx,
+                            ranking: idx,
                             title: await asyncTranslate(title, LANG),
                             categories: determineCategory(title),
                             articleHref,
@@ -107,7 +107,7 @@ parseNews = async (element, idx) => {
                         }
                     }
                 }));
-                liveElementListTemp = liveElementListTemp.filter(i=>i!==undefined);
+                liveElementListTemp = liveElementListTemp.filter(i => i !== undefined);
                 return [news].concat(liveElementListTemp)
             } else {
                 return await parseEnsembleNews(element, idx, true);
@@ -130,20 +130,20 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     news.isLive = news.articleHref.includes('/live/');
     const oriTitle = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
-    if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')){
+    if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')) {
         const oriSummary = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
         news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     news.categories = determineCategory(oriTitle);
     let hasImage = false;
-    if((await element.$$('img')).length > 0){
+    if ((await element.$$('img')).length > 0) {
         const imageDataSrc = (await element.$eval('img', node => node.getAttribute('srcset') || node.getAttribute('data-srcset'))).split(' ');
         news.imageHref = imageDataSrc[imageDataSrc.length - 2];
         hasImage = true;
     }
     news.imageHref = await getImageHref(element);
-    if(news.imageHref !== undefined){
+    if (news.imageHref !== undefined) {
         news.newsType = NewsTypes.CardWithImage;
         hasImage = true;
     }
@@ -164,7 +164,7 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
                 article: await parseArticle(browser, await node.$eval('a', n => n.getAttribute('href')))
             }
         }));
-        news.newsType = hasImage?NewsTypes.CardWithImageAndSubtitle:NewsTypes.CardWithList;
+        news.newsType = hasImage ? NewsTypes.CardWithImageAndSubtitle : NewsTypes.CardWithList;
     }
     if (news.isLive && hasImage) {
         news.newsType = NewsTypes.CardWithImageAndLive
@@ -180,8 +180,8 @@ parseProfileOrLiveNews = async (element, idx, isLive) => {
     news.isLive = isLive;
     news.newsType = isLive ? NewsTypes.CardWithLive : NewsTypes.CardWithTitleIntro
 
-    if ((await element.$$('[class*="fig-profile__headline"]')).length === 0){
-        console.log(await element.evaluate(node=>node.outerHTML))
+    if ((await element.$$('[class*="fig-profile__headline"]')).length === 0) {
+        console.log(await element.evaluate(node => node.outerHTML))
     }
     const oriTitle = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
@@ -189,7 +189,7 @@ parseProfileOrLiveNews = async (element, idx, isLive) => {
     news.articleHref = await element.$eval('a.fig-profile__link', node => node.getAttribute('href'));
     // objects.category = objects.articleHref.split('/')[3];
     news.imageHref = await getImageHref(element);
-    if(news.imageHref !== undefined)    news.newsType = isLive? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithImage
+    if (news.imageHref !== undefined) news.newsType = isLive ? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithImage
     const oriSummary = processStr(await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText));
     news.summary = await asyncTranslate(oriSummary, LANG);
     if (isLive) {
@@ -226,10 +226,10 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("24 * * * *", crawl);
 } else {
     crawl()
-    .then(() => process.exit())
-    .catch(r => {
-            logger.error(r);
-            process.exit(1);
-        }
-    );
+        .then(() => process.exit())
+        .catch(r => {
+                logger.error(r);
+                process.exit(1);
+            }
+        );
 }

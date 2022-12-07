@@ -37,7 +37,7 @@ crawl = async () => {
     for (let i = 0; i < elementList.length; i++) {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
-    const newsResult = allNewsResult.filter(i=>i!==undefined);
+    const newsResult = allNewsResult.filter(i => i !== undefined);
 
     logger.info('LeParisien parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
@@ -53,12 +53,12 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
     news.articleHref = 'https:' + await element.$eval('a', node => node.getAttribute('href'));
     const oriTitle = processStr(await element.$eval('.story-headline', node => node.innerText));
-    if (!determineCategory(oriTitle).includes('China')){
+    if (!determineCategory(oriTitle).includes('China')) {
         return;
     }
     news.title = await asyncTranslate(oriTitle, LANG);
     news.categories = ['China'];
-    news.imageHref = BASE_URL + await element.$eval('img', node=>node.getAttribute('src'));
+    news.imageHref = BASE_URL + await element.$eval('img', node => node.getAttribute('src'));
     news.newsType = NewsTypes.CardWithImage;
 
     if ((await element.$$('.story-subheadline')).length > 0) {

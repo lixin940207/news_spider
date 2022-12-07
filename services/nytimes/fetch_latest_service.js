@@ -51,7 +51,7 @@ crawl = async () => {
 }
 
 parseBlockNews = async (browser, block, idx) => {
-    const className = await block.evaluate(node=>node.getAttribute('class'));
+    const className = await block.evaluate(node => node.getAttribute('class'));
     if (className.includes('css-17tuifc')) {
         return [];
     }
@@ -68,7 +68,7 @@ parseBlockNews = async (browser, block, idx) => {
         }
         if (newsList.length > 0) {
             const primaryNews = newsList[0];
-            if (await ifSelectorExists(block, 'picture.css-hdqqnp img')){
+            if (await ifSelectorExists(block, 'picture.css-hdqqnp img')) {
                 primaryNews.imageHref = await getImageHref(block, 'picture.css-hdqqnp img');
             } else {
                 primaryNews.imageHref = primaryNews.article.headImageHref;
@@ -89,7 +89,7 @@ parseBlockNews = async (browser, block, idx) => {
 
 parseValidURL = (url) => {
     url = url.split('?')[0];
-    if(url.endsWith('/')) url = url.substring(0, url.length - 1);
+    if (url.endsWith('/')) url = url.substring(0, url.length - 1);
     const hrefSplit = url.split('/');
     if (hrefSplit[3] === 'interactive' || hrefSplit[4] === 'interactive' || hrefSplit[3] === 'news-event') {
         return undefined;
@@ -139,7 +139,7 @@ parseSingleNews = async (browser, element, idx) => {
         news.article = await parseArticle(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
     }
-    logger.info("parsed",  {
+    logger.info("parsed", {
         url: news.articleHref
     })
     return news;
@@ -149,10 +149,10 @@ if (process.env.ENV === 'PRODUCTION') {
     schedule.scheduleJob("42 * * * *", crawl);
 } else {
     crawl()
-    .then(() => process.exit())
-    .catch(r => {
-            logger.error(r.stack);
-            process.exit(1);
-        }
-    );
+        .then(() => process.exit())
+        .catch(r => {
+                logger.error(r.stack);
+                process.exit(1);
+            }
+        );
 }

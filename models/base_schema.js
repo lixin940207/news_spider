@@ -39,14 +39,14 @@ function BaseSchema() {
     Schema.apply(this, arguments);
 
     this.add({
-        articleHref: {type: String, required:true, unique: true, index: true},
+        articleHref: {type: String, required: true, unique: true, index: true},
         imageHref: {type: String},
         title: textSchema,
         region: {type: String},
         categories: [String],
         publishTime: {type: String, index: true},
         ranking: {type: Number},
-        displayOrder:{type: Number, index: true},
+        displayOrder: {type: Number, index: true},
         summary: textSchema,
         newsType: {type: String, enum: Object.values(NewsTypes)},
         isLive: {type: Boolean, default: false},
@@ -55,14 +55,16 @@ function BaseSchema() {
         isVideo: Boolean,
         relatedNewsList: [{
             title: textSchema,
-            article: articleSchema}],
+            article: articleSchema
+        }],
         expireAt: {
             type: Date,
             default: Date.now,
-            index: { expires: '5d' }
+            index: {expires: '5d'}
         }
     });
 }
+
 util.inherits(BaseSchema, Schema);
 
 module.exports = BaseSchema;

@@ -23,11 +23,11 @@ async function asyncTranslate(text, ori) {
 }
 
 async function pushToQueueAndWaitForTranslateRes(q, lang) {
-    if (!q ){
+    if (!q) {
         return "";
     } else {
         const key = lang + md5(q);
-        await rPushAsync(REDIS_NLP_TRANSLATE_QUEUE_KEY+lang, JSON.stringify({
+        await rPushAsync(REDIS_NLP_TRANSLATE_QUEUE_KEY + lang, JSON.stringify({
             q,
             key: key,
             task: "translation",
@@ -39,10 +39,10 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
 
 async function recursiveGetValidResult(sign) {
     const reply = await getAsync(sign);
-    if (reply !== null){
+    if (reply !== null) {
         await delAsync(sign);
         return JSON.parse(reply);
-    }else{
+    } else {
         return await recursiveGetValidResult(sign);
     }
 }

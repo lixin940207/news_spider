@@ -17,7 +17,7 @@ let browser;
 
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
-    logger.info('LeMonde new crawling start.'+ current_ts);
+    logger.info('LeMonde new crawling start.' + current_ts);
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -36,7 +36,7 @@ crawl = async () => {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
     allNewsResult = allNewsResult.flat().filter(news => news !== undefined);
-    allNewsResult = allNewsResult.map(element=>{
+    allNewsResult = allNewsResult.map(element => {
         element.platform = 'LeMonde';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
@@ -58,18 +58,18 @@ parseNews = async (element, idx) => {
     news.title = await asyncTranslate(oriTitle, LANG);
     news.categories = determineCategory(oriTitle);
     news.newsType = NewsTypes.CardWithTitleWide;
-    if (await ifSelectorExists(element,'.article__desc')) {
+    if (await ifSelectorExists(element, '.article__desc')) {
         const oriSummary = processStr(await element.$eval('.article__desc', node => node.innerText));
         news.summary = await asyncTranslate(oriSummary, LANG);
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     let hasImage = false;
     news.imageHref = await getImageHref(element, 'picture.article__media img', 1);
-    if (news.imageHref!==undefined){
+    if (news.imageHref !== undefined) {
         hasImage = true;
         news.newsType = NewsTypes.CardWithImage;
     }
-    if ((await element.evaluate(node=>node.getAttribute('class'))).includes('article--main')) {
+    if ((await element.evaluate(node => node.getAttribute('class'))).includes('article--main')) {
         const mainArticleWrapper = (await element.$$('a'))[0];
         news.isLive = await ifSelectorExists(mainArticleWrapper, '[class*="flag-live-cartridge"]');
     } else {
@@ -89,17 +89,17 @@ parseNews = async (element, idx) => {
             news.imageHref = news.article.mainImageHref;
         }
     }
-    if (await ifSelectorExists(element,'ul[class*="article__related"]')) {
+    if (await ifSelectorExists(element, 'ul[class*="article__related"]')) {
         const relatedElementList = await element.$$('ul[class*="article__related"] li a');
-        if(news.isLive){
+        if (news.isLive) {
             let liveNewsList = await Promise.all(relatedElementList.map(async element => {
-                if((await element.$$('[class*="flag-live-cartridge"]')).length > 0){
-                    const articleHref = await element.evaluate(node=>node.getAttribute('href'));
-                    const title = processStr(await element.evaluate(node=>node.innerText));
+                if ((await element.$$('[class*="flag-live-cartridge"]')).length > 0) {
+                    const articleHref = await element.evaluate(node => node.getAttribute('href'));
+                    const title = processStr(await element.evaluate(node => node.innerText));
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref)
                     return {
                         title: await asyncTranslate(title, LANG),
-                        ranking:idx,
+                        ranking: idx,
                         isLive: true,
                         articleHref,
                         newsType: NewsTypes.CardWithLive,
@@ -108,12 +108,12 @@ parseNews = async (element, idx) => {
                     }
                 }
             }))
-            liveNewsList = liveNewsList.filter(i=>i!==undefined);
+            liveNewsList = liveNewsList.filter(i => i !== undefined);
             let listNews = await Promise.all(relatedElementList.map(async element => {
-                if((await element.$$('[class*="flag-live-cartridge"]')).length === 0){
-                    const articleHref = await element.evaluate(node=>node.getAttribute('href'));
-                    const title = processStr(await element.evaluate(node=>node.innerText));
-                    const article = await goToArticlePageAndParse(browser,articleHref);
+                if ((await element.$$('[class*="flag-live-cartridge"]')).length === 0) {
+                    const articleHref = await element.evaluate(node => node.getAttribute('href'));
+                    const title = processStr(await element.evaluate(node => node.innerText));
+                    const article = await goToArticlePageAndParse(browser, articleHref);
                     return {
                         title: await asyncTranslate(title, LANG),
                         article,
@@ -121,34 +121,34 @@ parseNews = async (element, idx) => {
                     }
                 }
             }));
-            listNews = listNews.filter(i=>i!==undefined);
-            if (listNews){
+            listNews = listNews.filter(i => i !== undefined);
+            if (listNews) {
                 const newNews = new NewsObject;
                 newNews.ranking = idx;
                 newNews.isLive = false;
-                newNews.newsType =  NewsTypes.CardWithList;
+                newNews.newsType = NewsTypes.CardWithList;
                 newNews.relatedNewsList = listNews;
-                newNews.publishTime = new Date(Math.max.apply(null,listNews.map(i=>i.publishTime)));
-                newNews.articleHref = listNews.map(i=>i.articleHref).join(' ');
+                newNews.publishTime = new Date(Math.max.apply(null, listNews.map(i => i.publishTime)));
+                newNews.articleHref = listNews.map(i => i.articleHref).join(' ');
                 return [news].concat(liveNewsList).concat([newNews]);
-            }else{
+            } else {
                 return [news].concat(liveNewsList)
             }
-        }else{
+        } else {
             news.relatedNewsList = (await Promise.all(relatedElementList.map(async element => {
-                if((await element.$$('[class*="flag-live-cartridge"]')).length === 0){
-                    const title = processStr(await element.evaluate(node=>node.innerText));
+                if ((await element.$$('[class*="flag-live-cartridge"]')).length === 0) {
+                    const title = processStr(await element.evaluate(node => node.innerText));
                     return {
                         title: await asyncTranslate(title, LANG),
-                        article: await goToArticlePageAndParse(browser, await element.evaluate(node=>node.getAttribute('href'))),
+                        article: await goToArticlePageAndParse(browser, await element.evaluate(node => node.getAttribute('href'))),
                     }
                 }
-            }))).filter(i=>i!==undefined);
+            }))).filter(i => i !== undefined);
             news.newsType = NewsTypes.CardWithImageAndSubtitle;
             let liveNewsList = await Promise.all(relatedElementList.map(async element => {
-                if((await element.$$('[class*="flag-live-cartridge"]')).length > 0){
-                    const articleHref = await element.evaluate(node=>node.getAttribute('href'));
-                    const title = processStr(await element.evaluate(node=>node.innerText));
+                if ((await element.$$('[class*="flag-live-cartridge"]')).length > 0) {
+                    const articleHref = await element.evaluate(node => node.getAttribute('href'));
+                    const title = processStr(await element.evaluate(node => node.innerText));
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref)
                     return {
                         title: await asyncTranslate(title, LANG),
@@ -161,7 +161,7 @@ parseNews = async (element, idx) => {
                     }
                 }
             }))
-            liveNewsList = liveNewsList.filter(i=>i!==undefined);
+            liveNewsList = liveNewsList.filter(i => i !== undefined);
             return [news].concat(liveNewsList);
         }
     }
