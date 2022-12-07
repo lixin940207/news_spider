@@ -6,15 +6,17 @@ const Schema = mongoose.Schema;//规定表里面的字段的规范
 
 
 const textSchema = new Schema({
-    cn:String,
-    ori:String
+    zh: String,
+    en: String,
+    fr: String,
 })
 
 const blockSchema = new Schema({
     type: String,
     src: String,
-    ori:Object,
-    cn:Object
+    en: Object,
+    zh: Object,
+    fr: Object
 })
 
 const articleSchema = new Schema({
