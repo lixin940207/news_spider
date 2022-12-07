@@ -5,19 +5,23 @@ const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 parseArticle = async (browser, url) => {
     const partName = url.split(/[./]/)[2];
+    let article;
     if (partName === 'madame') {
-        return await goToMadArticlePageAndParse(browser, url);
+        article = await goToMadArticlePageAndParse(browser, url);
     } else if (partName === 'etudiant') {
-        return await goToEduArticlePageAndParse(browser, url);
+        article = await goToEduArticlePageAndParse(browser, url);
     } else if (partName === 'tvmag') {
-        return await goToTVMagPageAndParse(browser, url);
+        article = await goToTVMagPageAndParse(browser, url);
     } else {
-        return await goToArticlePageAndParse(browser, url);
+        article = await goToArticlePageAndParse(browser, url);
     }
+    article.abstract = await asyncSummarize(article);
+    return article;
 }
 
 goToArticlePageAndParse = async (browser, url) => {

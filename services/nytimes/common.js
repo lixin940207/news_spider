@@ -6,6 +6,7 @@ const {ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.NYTimes;
 
 const BASE_URL = "https://www.nytimes.com/";
@@ -47,11 +48,14 @@ parseLiveNews = async (browser, url) => {
 }
 
 parseArticle = async (browser, url) => {
+    let article;
     if (url.split(BASE_URL)[1].startsWith('/article/')) {
-        return await goToArticleArticlePageAndParse(browser, url);
+        article = await goToArticleArticlePageAndParse(browser, url);
     } else {
-        return await goToArticlePageAndParse(browser, url);
+        article = await goToArticlePageAndParse(browser, url);
     }
+    article.abstract = await asyncSummarize(article);
+    return article;
 }
 
 goToArticlePageAndParse = async (browser, url) => {

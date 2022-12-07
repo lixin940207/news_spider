@@ -1,10 +1,10 @@
 const moment = require('moment-timezone');
 const {processStr, getImageHref} = require("../utils/util");
-const {asyncTranslate, pushToQueueAndWaitForTranslateRes} = require("../utils/translations");
+const {asyncTranslate} = require("../utils/translations");
 const {ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
-const {pushArticleToNLPSummarizeQueue} = require("../utils/nlp_summarize");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 
 const LANG = require('../../config/config').LANGUAGE.BBC;
 
@@ -62,6 +62,7 @@ const parseArticle = async (browser, url) => {
     } else {
         article = await goToArticlePageAndParse(browser, url);
     }
+    article.abstract = await asyncSummarize(article);
 }
 
 const goToVideoPageAndParse = async (browser, url) => {

@@ -4,6 +4,7 @@ const {asyncTranslate} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeParisien;
 
 goToArticlePageAndParse = async (browser, url) => {
@@ -14,7 +15,7 @@ goToArticlePageAndParse = async (browser, url) => {
     });
     await pageContent.bringToFront();
     try {
-        await pageContent.waitForSelector('article', {timeout: 30000});
+        await pageContent.waitForSelector('article', {timeout: 0});
     } catch (e) {
         logger.error(url + 'has problem!')
     }
@@ -42,6 +43,8 @@ goToArticlePageAndParse = async (browser, url) => {
         'article section#left [class*="article-section"] .content > h2,' +
         'article section#left [class*="article-section"] .content .essential-card_container_element *',
         LANG);
+    article.abstract = await asyncSummarize(article);
+
     return article;
 }
 

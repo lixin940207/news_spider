@@ -3,6 +3,7 @@ const {asyncTranslate} = require("../utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList, ifSelectorExists} = require("../utils/util");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeMonde;
 
 module.exports.goToArticlePageAndParse = async (browser, url) => {
@@ -78,6 +79,7 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
             }
         }
         article.publishTime = date;
+        article.abstract = await asyncSummarize(article);
         return article;
     }
 }

@@ -1,6 +1,7 @@
 const {ArticleObject} = require("../utils/objects");
 const {processStr, getBodyBlockList, ifSelectorExists} = require("../utils/util");
 const {asyncTranslate} = require("../utils/translations");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.TechCrunch;
 
 acceptCookie = async (page) => {
@@ -38,6 +39,8 @@ parseArticle = async (browser, url) => {
         'div.article__content-wrap div.article-content > h2,' +
         'div.article__content-wrap div.article-content > ul',
         LANG);
+
+    article.abstract = await asyncSummarize(article);
 
     return article;
 }

@@ -2,6 +2,7 @@ const {processStr, ifSelectorExists, getImageHref} = require("../utils/util");
 const {asyncTranslate} = require("../utils/translations");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 const LANG = require('../../config/config').LANGUAGE.FRANCE24;
 
 module.exports.goToArticlePageAndParse = async (browser, url) => {
@@ -12,7 +13,6 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     });
     await pageContent.bringToFront();
     await pageContent.waitForSelector('main article');
-
 
     const oriTitle = processStr(await pageContent.$eval('article [class*="t-content__title"]', node => node.innerText));
     article.title = await asyncTranslate(oriTitle, LANG);
@@ -26,5 +26,7 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     article.bodyBlockList = await getBodyBlockList(pageContent,
         'article div[class*="t-content__body"] > p',
         LANG);
+    article.abstract = await asyncSummarize(article);
+
     return article;
 }

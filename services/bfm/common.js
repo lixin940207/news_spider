@@ -3,6 +3,7 @@ const logger = require("../../config/logger");
 const {asyncTranslate} = require("../utils/translations");
 const {processStr, getBodyBlockList, ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
+const {asyncSummarize} = require("../utils/nlp_summarize");
 
 const LANG = require('../../config/config').LANGUAGE.BFM;
 
@@ -14,12 +15,16 @@ goToDetailPageAndParse = async (browser, url) => {
     await pageContent.bringToFront();
     if (!(await ifSelectorExists(pageContent, '#main_wrapper'))) {
         console.log(url);
+        return null;
     }
+    let article;
     if ((await pageContent.$eval('#main_wrapper', node => node.getAttribute('class'))).includes('video')) {
         return null;
     } else {
-        return await goToArticlePageAndParse(pageContent, url);
+        article = await goToArticlePageAndParse(pageContent, url);
     }
+    article.abstract = await asyncSummarize(article);
+
 }
 
 goToArticlePageAndParse = async (pageContent) => {
