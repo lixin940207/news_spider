@@ -1,38 +1,39 @@
-// const redisClient = require('../redis_connection');
 const md5 = require('md5');
 const {delAsync} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
 const {getAsync} = require("../redis_connection");
-const {REDIS_INPUT_QUEUE_KEY} = require("../../config/config");
+const {REDIS_NLP_TRANSLATE_QUEUE_KEY} = require("../../config/config");
 
+async function asyncTranslate(text, ori) {
+    const i = {}
+    if (ori === "en") {
+        i.en = text;
+        i.fr = await pushToQueueAndWaitForTranslateRes(i.en, "en_fr");
+        i.zh = await pushToQueueAndWaitForTranslateRes(i.en, "en_zh");
+    } else if (ori === "fr") {
+        i.fr = text;
+        i.en = await pushToQueueAndWaitForTranslateRes(i.fr, "fr_en");
+        i.zh = await pushToQueueAndWaitForTranslateRes(i.en, "en_zh");
+    } else {
+        i.zh = text;
+        i.en = await pushToQueueAndWaitForTranslateRes(i.zh, "zh_en");
+        i.fr = await pushToQueueAndWaitForTranslateRes(i.en, "en_fr");
+    }
+    return i;
+}
 
-const {
-    BAIDU_APP_ID,
-    BAIDU_SECRET_KEY
-} = require("../../config/config");
-
-
-async function pushToQueueAndWaitForTranslateRes(q) {
+async function pushToQueueAndWaitForTranslateRes(q, lang) {
     if (!q ){
         return "";
-    } else if (q.split('\n').length > 1) {
-        return (
-            await Promise.all(
-                (q.split('\n').map( async s => {
-                    const salt = (new Date).getTime();
-                    const str = BAIDU_APP_ID + s + salt + BAIDU_SECRET_KEY;
-                    const sign = md5(str);
-                    await rPushAsync(REDIS_INPUT_QUEUE_KEY, JSON.stringify({q: s, sign, salt}));
-                    return await recursiveGetValidResult(sign);
-                })
-            ))
-        ).join('\n');
-    }  else {
-        const salt = (new Date).getTime();
-        const str = BAIDU_APP_ID + q + salt + BAIDU_SECRET_KEY;
-        const sign = md5(str);
-        await rPushAsync(REDIS_INPUT_QUEUE_KEY, JSON.stringify({q, sign, salt}));
-        return await recursiveGetValidResult(sign);
+    } else {
+        const key = lang + md5(q);
+        await rPushAsync(REDIS_NLP_TRANSLATE_QUEUE_KEY+lang, JSON.stringify({
+            q,
+            key: key,
+            task: "translation",
+            lang,
+        }));
+        return await recursiveGetValidResult(key);
     }
 }
 
@@ -40,34 +41,13 @@ async function recursiveGetValidResult(sign) {
     const reply = await getAsync(sign);
     if (reply !== null){
         await delAsync(sign);
-        return reply;
+        return JSON.parse(reply);
     }else{
         return await recursiveGetValidResult(sign);
     }
 }
 
-// async function translateText(q, salt, sign, from = 'auto', to = 'zh') {
-//     // try{
-//     //     let [translations] = await translate.translate(q, target);
-//     //     return translations;
-//     // }catch (e) {
-//     //     return undefined;
-//     // }
-//     const response = await axios.get(BAIDU_TRANSLATION_API, {
-//         params: {
-//             q,
-//             from,
-//             to,
-//             appid: BAIDU_APP_ID,
-//             salt,
-//             sign,
-//         },
-//         headers: {'Content-Type': 'application/json'}
-//     });
-//     return response.data.trans_result[0].dst;
-// }
-
 module.exports = {
-    // translateText,
     pushToQueueAndWaitForTranslateRes,
+    asyncTranslate,
 }
