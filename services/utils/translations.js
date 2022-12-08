@@ -29,7 +29,7 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
     if (!q) {
         return "";
     } else {
-        const key = lang + md5(q.join());
+        const key = lang + md5(typeof q === "string"? q: q.join());
         const existingRes = await getResultFromRedis(key, false);
         if (existingRes) {
             return existingRes;
