@@ -1,12 +1,11 @@
 const md5 = require('md5');
-const {delAsync} = require("../redis_connection");
+const {getResultFromRedis} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
-const {getAsync} = require("../redis_connection");
 const {REDIS_NLP_SUMMARIZE_QUEUE_KEY, ENABLE_TRANSLATE, ENABLE_SUMMARIZE} = require("../../config/config");
 const {pushToQueueAndWaitForTranslateRes} = require("./translations");
 
 async function asyncSummarize(article, ori) {
-    if (!ENABLE_SUMMARIZE){
+    if (!ENABLE_SUMMARIZE) {
         return undefined;
     }
     if (ENABLE_TRANSLATE) {
@@ -61,7 +60,11 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
     if (toBeSummarizedList.length === 0) {
         return "";
     } else {
-        const key = lang + md5(article.articleHref);
+        const key = lang + md5(toBeSummarizedList);
+        const existingRes = await getResultFromRedis(key, false);
+        if (existingRes) {
+            return existingRes;
+        }
         await rPushAsync(REDIS_NLP_SUMMARIZE_QUEUE_KEY, JSON.stringify({
                 q: toBeSummarizedList,
                 key,
@@ -69,17 +72,7 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
                 lang,
             })
         );
-        return await recursiveGetValidResult(key);
-    }
-}
-
-async function recursiveGetValidResult(key) {
-    const reply = await getAsync(key);
-    if (reply !== null) {
-        await delAsync(key);
-        return reply;
-    } else {
-        return await recursiveGetValidResult(key);
+        return await getResultFromRedis(key);
     }
 }
 

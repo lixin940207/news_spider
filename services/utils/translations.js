@@ -1,11 +1,10 @@
 const md5 = require('md5');
-const {delAsync} = require("../redis_connection");
+const {getResultFromRedis} = require("../redis_connection");
 const {rPushAsync} = require("../redis_connection");
-const {getAsync} = require("../redis_connection");
 const {REDIS_NLP_TRANSLATE_QUEUE_KEY, ENABLE_TRANSLATE} = require("../../config/config");
 
 async function asyncTranslate(text, ori) {
-    const i = {}
+    let i = {};
     if (ENABLE_TRANSLATE) {
         if (ori === "en") {
             i.en = text;
@@ -31,23 +30,17 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
         return "";
     } else {
         const key = lang + md5(q);
+        const existingRes = await getResultFromRedis(key, false);
+        if (existingRes) {
+            return existingRes;
+        }
         await rPushAsync(REDIS_NLP_TRANSLATE_QUEUE_KEY + lang, JSON.stringify({
             q,
             key: key,
             task: "translation",
             lang,
         }));
-        return await recursiveGetValidResult(key);
-    }
-}
-
-async function recursiveGetValidResult(sign) {
-    const reply = await getAsync(sign);
-    if (reply !== null) {
-        await delAsync(sign);
-        return JSON.parse(reply);
-    } else {
-        return await recursiveGetValidResult(sign);
+        return await getResultFromRedis(key);
     }
 }
 

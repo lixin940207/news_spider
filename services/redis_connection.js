@@ -23,15 +23,22 @@ const getAsync = promisify(redisClient.get).bind(redisClient);
 const rPushAsync = promisify(redisClient.rpush).bind(redisClient);
 const lPopAsync = promisify(redisClient.lpop).bind(redisClient);
 const delAsync = promisify(redisClient.del).bind(redisClient);
-//
-// setInterval(async ()=>{
-//     const reply = await lPopAsync(REDIS_INPUT_QUEUE_KEY);
-//     if(reply !==  null) {
-//         const replyObj = JSON.parse(reply);
-//         const translateRes = await translateText(replyObj.q, replyObj.salt, replyObj.sign);
-//         redisClient.set(replyObj.sign, translateRes);
-//     }
-// }, 1000)
+const setExpireAsync = promisify(redisClient.expire).bind(redisClient)
+
+async function getResultFromRedis(sign, recursive=true) {
+    const reply = await getAsync(sign);
+    if (reply !== null && reply !== undefined) {
+        // await delAsync(sign);
+        await setExpireAsync(sign, 5400);
+        return JSON.parse(reply);
+    } else {
+        if (recursive) {
+            return await getResultFromRedis(sign);
+        } else {
+            return null;
+        }
+    }
+}
 
 
 module.exports = {
@@ -39,5 +46,7 @@ module.exports = {
     getAsync,
     rPushAsync,
     lPopAsync,
-    delAsync
+    delAsync,
+    setExpireAsync,
+    getResultFromRedis,
 };

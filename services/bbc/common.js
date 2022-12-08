@@ -79,6 +79,7 @@ const goToVideoPageAndParse = async (browser, url) => {
     article.title = await asyncTranslate(oriTitle, LANG);
 
     article.bodyBlockList = await getBodyBlockList(pageContent, 'article > div[class*="StyledSummary"] p', LANG);
+    return article;
 }
 
 const goToArticlePageAndParse = async (browser, url) => {
