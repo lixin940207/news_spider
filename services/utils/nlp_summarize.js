@@ -60,7 +60,7 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
     if (toBeSummarizedList.length === 0) {
         return "";
     } else {
-        const key = lang + md5(toBeSummarizedList);
+        const key = lang + md5(toBeSummarizedList.join());
         const existingRes = await getResultFromRedis(key, false);
         if (existingRes) {
             return existingRes;
