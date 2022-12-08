@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer');
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
 const logger = require("../../config/logger");
-const {processStr} = require("../utils/util");
+const {processStr, determineCategory} = require("../utils/util");
 const {asyncTranslate} = require("../utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref, ifSelectorExists} = require("../utils/util");
@@ -49,7 +49,7 @@ parseNews = async (element, idx) => {
     const oriTitle = processStr(await element.$eval('.teaser__title', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
     news.imageHref = await getImageHref(element, 'picture source');
-    news.categories = ['China'];
+    news.categories = ['China', ...determineCategory(oriTitle)];
     news.newsType = NewsTypes.CardWithImage;
     if (await ifSelectorExists(element, '.teaser__desc')) {
         const oriSummary = processStr(await element.$eval('.teaser__desc', node => node.innerText));

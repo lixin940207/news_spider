@@ -6,7 +6,7 @@ const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {asyncTranslate} = require("../utils/translations");
 const {parseArticle} = require("./common");
-const {ifSelectorExists, getImageHref, processStr} = require("../utils/util");
+const {ifSelectorExists, getImageHref, processStr, determineCategory} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 
 const BASE_URL = 'https://www.bbc.com';
@@ -64,6 +64,7 @@ parseNews = async (element, idx, category) => {
 
     const oriTitle = processStr(await element.$eval('div.gs-c-promo-body .gs-c-promo-heading .gs-c-promo-heading__title', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = [category, ...determineCategory(oriTitle)];
 
     news.imageHref = await getImageHref(element, 'div.gs-c-promo-image img');
     // if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;
@@ -89,7 +90,6 @@ parseNews = async (element, idx, category) => {
             news.newsType = NewsTypes.CardWithTitleWide;
         }
     }
-    news.categories = [category];
     logger.info("parsed news ", {href: news.articleHref});
     return news;
 }

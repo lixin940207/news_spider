@@ -57,6 +57,7 @@ parseNews = async (element, idx) => {
     if (!determineCategory(oriTitle).includes('China')) {
         return;
     }
+    news.categories = ['China', determineCategory(oriTitle)];
     news.title = await asyncTranslate(oriTitle, LANG);
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
     if ((await element.$$('img[src]')).length > 0) {

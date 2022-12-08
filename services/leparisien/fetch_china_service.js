@@ -57,7 +57,7 @@ parseNews = async (element, idx) => {
         return;
     }
     news.title = await asyncTranslate(oriTitle, LANG);
-    news.categories = ['China'];
+    news.categories = ['China', ...determineCategory(oriTitle)];
     news.imageHref = BASE_URL + await element.$eval('img', node => node.getAttribute('src'));
     news.newsType = NewsTypes.CardWithImage;
 

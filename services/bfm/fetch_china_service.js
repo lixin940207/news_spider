@@ -61,7 +61,7 @@ parseNews = async (element, idx) => {
         return;
     }
     news.title = await asyncTranslate(oriTitle, LANG);
-    news.categories = ['China'];
+    news.categories = ['China', ...determineCategory(oriTitle)];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.startsWith('/')) {
         news.articleHref = BASE_URL + news.articleHref;

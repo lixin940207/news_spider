@@ -5,7 +5,7 @@ const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
 const URL = require('../../config/config').ORIGINAL_URLS.NYTimeURL;
 const logger = require('../../config/logger');
-const {ifSelectorExists} = require("../utils/util");
+const {ifSelectorExists, determineCategory} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {parseArticle, parseLiveNews} = require("./common");
@@ -114,6 +114,7 @@ parseSingleNews = async (browser, element, idx) => {
 
     const oriTitle = await element.$eval('h2.indicate-hover, h3.indicate-hover', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = determineCategory(oriTitle);
     if (await ifSelectorExists(element, 'p.summary-class')) {
         const oriSummary = await element.$eval('p.summary-class', node => node.innerText);
         news.summary = await asyncTranslate(oriSummary, LANG);

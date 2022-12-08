@@ -6,7 +6,7 @@ const NewsTypes = require("../../models/news_type_enum");
 const News = require('../../models/news')
 const schedule = require("node-schedule");
 const {asyncTranslate} = require("../utils/translations");
-const {processStr, getImageHref, ifSelectorExists} = require("../utils/util");
+const {processStr, getImageHref, ifSelectorExists, determineCategory} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {parseArticle} = require("./common");
 const LANG = require("../../config/config").LANGUAGE.LeFigaro;
@@ -48,7 +48,7 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
     const oriTitle = processStr(await element.$eval('.fig-profile__headline', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
-    news.categories = ['China'];
+    news.categories = ['China', ...determineCategory(oriTitle)];
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.split('/')[4] === 'video') {
         return undefined;

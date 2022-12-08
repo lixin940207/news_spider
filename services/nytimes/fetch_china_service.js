@@ -7,7 +7,7 @@ const URL = require('../../config/config').CHINA_NEWS_URLS.NYTimesURL;
 const logger = require('../../config/logger');
 const {parseChineseArticle} = require("./common");
 const {NewsObject} = require("../utils/objects");
-const {getImageHref} = require("../utils/util");
+const {getImageHref, determineCategory} = require("../utils/util");
 const {asyncTranslate} = require("../utils/translations");
 const BASE_URL = 'https://cn.nytimes.com';
 const LANG = 'zh';
@@ -52,6 +52,8 @@ parseNews = async (element, idx) => {
     news.ranking = idx;
     const oriTitle = await element.$eval('h3', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.categories = ['China', ...determineCategory(oriTitle)];
+
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'))
     const oriSummary = await element.$eval('p.summary', node => node.innerText);
     news.summary = await asyncTranslate(oriSummary, LANG);
@@ -60,7 +62,6 @@ parseNews = async (element, idx) => {
         news.imageHref = await element.$eval('img', node => node.getAttribute('data-url'));
     }
     news.newsType = NewsTypes.CardWithImageAndSummary;
-    news.categories = ['China'];
 
     news.article = await parseChineseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;

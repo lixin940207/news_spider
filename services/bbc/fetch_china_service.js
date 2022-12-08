@@ -6,7 +6,7 @@ const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
 const {asyncTranslate} = require("../utils/translations");
 const {parseArticle} = require("./common");
-const {processStr, ifSelectorExists, getImageHref} = require("../utils/util");
+const {processStr, ifSelectorExists, getImageHref, determineCategory} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 
 const BASE_URL = 'https://www.bbc.com';
@@ -65,7 +65,7 @@ parseNews = async (element, idx, category) => {
     news.title = await asyncTranslate(oriTitle, LANG);
 
     news.newsType = NewsTypes.CardWithTitleWide
-    news.categories = [category];
+    news.categories = [category, ...determineCategory(oriTitle)];
     if (await ifSelectorExists(element, '.lx-stream-related-story')) {
         news.imageHref = await getImageHref(element, '.lx-stream-related-story img');
         if (news.imageHref !== undefined) news.newsType = NewsTypes.CardWithImage;

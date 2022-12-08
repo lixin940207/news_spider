@@ -4,7 +4,7 @@ require('../mongodb_connection');
 const News = require('../../models/news');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
-const {processStr} = require("../utils/util");
+const {processStr, determineCategory} = require("../utils/util");
 const {asyncTranslate} = require("../utils/translations");
 const {parseArticle, acceptCookie} = require("./common");
 const {ifSelectorExists, getImageHref} = require("../utils/util");
@@ -87,7 +87,7 @@ parseNews = async (element, idx, category) => {
     const oriSummary = await element.$eval('div.post-block__content', node => node.innerText);
     news.summary = await asyncTranslate(oriSummary, LANG);
 
-    news.categories = [category];
+    news.categories = [category, ...determineCategory(oriTitle)];
     logger.info("parsed news ", {href: news.articleHref});
     return news;
 }
