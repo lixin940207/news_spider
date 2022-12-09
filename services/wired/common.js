@@ -1,7 +1,7 @@
 const {ArticleObject} = require("../utils/objects");
 const {processStr, getBodyBlockList} = require("../utils/util");
-const {asyncTranslate} = require("../utils/translations");
-const {asyncSummarize} = require("../utils/nlp_summarize");
+const {asyncTranslate} = require("../nlp_utils/translations");
+const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.WIRED;
 
 acceptCookie = async (page) => {

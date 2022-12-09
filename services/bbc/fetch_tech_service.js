@@ -4,7 +4,7 @@ require('../mongodb_connection');
 const News = require('../../models/news');
 const logger = require('../../config/logger');
 const NewsTypes = require("../../models/news_type_enum");
-const {asyncTranslate} = require("../utils/translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const {parseArticle} = require("./common");
 const {ifSelectorExists, getImageHref, processStr, determineCategory} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");

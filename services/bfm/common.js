@@ -1,9 +1,9 @@
 const moment = require('moment');
 const logger = require("../../config/logger");
-const {asyncTranslate} = require("../utils/translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const {processStr, getBodyBlockList, ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
-const {asyncSummarize} = require("../utils/nlp_summarize");
+const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 
 const LANG = require('../../config/config').LANGUAGE.BFM;
 

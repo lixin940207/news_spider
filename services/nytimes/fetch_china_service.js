@@ -8,7 +8,7 @@ const logger = require('../../config/logger');
 const {parseChineseArticle} = require("./common");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref, determineCategory} = require("../utils/util");
-const {asyncTranslate} = require("../utils/translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const BASE_URL = 'https://cn.nytimes.com';
 const LANG = 'zh';
 

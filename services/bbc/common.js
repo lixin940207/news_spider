@@ -1,10 +1,10 @@
 const moment = require('moment-timezone');
 const {processStr, getImageHref} = require("../utils/util");
-const {asyncTranslate} = require("../utils/translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const {ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
-const {asyncSummarize} = require("../utils/nlp_summarize");
+const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 
 const LANG = require('../../config/config').LANGUAGE.BBC;
 

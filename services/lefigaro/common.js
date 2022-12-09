@@ -1,11 +1,11 @@
 const logger = require("../../config/logger");
-const {asyncTranslate} = require("../utils/translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const {processStr} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {getImageHref} = require("../utils/util");
 const {ifSelectorExists} = require("../utils/util");
-const {asyncSummarize} = require("../utils/nlp_summarize");
+const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 parseArticle = async (browser, url) => {

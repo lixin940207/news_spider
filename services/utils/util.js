@@ -1,5 +1,5 @@
 const categories = require('./categories');
-const {asyncTranslate} = require("./translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const {ENABLE_TRANSLATE} = require("../../config/config");
 const assert = require("assert");
 

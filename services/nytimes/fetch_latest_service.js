@@ -9,7 +9,7 @@ const {ifSelectorExists, determineCategory} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {parseArticle, parseLiveNews} = require("./common");
-const {asyncTranslate} = require("../utils/translations");
+const {asyncTranslate} = require("../nlp_utils/translations");
 const LANG = require("../../config/config").LANGUAGE.NYTimes;
 
 let browser;
