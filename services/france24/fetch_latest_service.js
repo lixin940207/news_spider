@@ -10,13 +10,14 @@ const {asyncTranslate} = require("../nlp_utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
 const {determineCategory} = require("../utils/util");
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const LANG = require('../../config/config').LANGUAGE.FRANCE24;
 
 const BASE_URL = 'https://www.france24.com';
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('France24 new crawling start.' + current_ts);
     browser = await puppeteer.launch({
@@ -51,7 +52,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
 
@@ -61,6 +62,7 @@ parseNews = async (element, idx) => {
     }
     const oriTitle = processStr(await element.$eval('[class*="article__title"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     news.imageHref = await getImageHref(element, 'div.article__figure-wrapper img');
     news.isLive = false;

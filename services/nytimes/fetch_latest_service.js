@@ -10,6 +10,7 @@ const {NewsObject} = require("../utils/objects");
 const {getImageHref} = require("../utils/util");
 const {parseArticle, parseLiveNews} = require("./common");
 const {asyncTranslate} = require("../nlp_utils/translations");
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const LANG = require("../../config/config").LANGUAGE.NYTimes;
 
 let browser;
@@ -17,7 +18,6 @@ let browser;
 crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('NYTimes a new crawling start.' + current_ts);
-    objs = {}
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -84,7 +84,6 @@ parseBlockNews = async (browser, block, idx) => {
     } else {
         return [];
     }
-
 }
 
 parseValidURL = (url) => {
@@ -114,6 +113,7 @@ parseSingleNews = async (browser, element, idx) => {
 
     const oriTitle = await element.$eval('h2.indicate-hover, h3.indicate-hover', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     if (await ifSelectorExists(element, 'p.summary-class')) {
         const oriSummary = await element.$eval('p.summary-class', node => node.innerText);

@@ -12,6 +12,7 @@ const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
 const {parseLiveNews} = require("./common");
 const {determineCategory} = require("../utils/util");
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const LANG = require("../../config/config").LANGUAGE.LeParisien;
 
 moment.locale('en');
@@ -64,6 +65,7 @@ parseNews = async (element, idx) => {
         oriTitle = oriTitle.slice(7,);
     }
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     if ((await element.$$('.story-subheadline')).length > 0) {
         const oriSummary = processStr(await element.$eval('.story-subheadline', node => node.innerText));
         news.summary = await asyncTranslate(oriSummary, LANG);

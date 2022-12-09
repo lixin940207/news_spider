@@ -44,6 +44,7 @@ function BaseSchema() {
         title: textSchema,
         region: {type: String},
         categories: [String],
+        keywords: [String],
         publishTime: {type: String, index: true},
         ranking: {type: Number},
         displayOrder: {type: Number, index: true},

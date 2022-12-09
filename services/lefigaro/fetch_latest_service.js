@@ -9,6 +9,7 @@ const {processStr, getImageHref, ifSelectorExists, determineCategory} = require(
 const {asyncTranslate} = require("../nlp_utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {parseLiveNews, parseArticle} = require("./common");
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 let browser;
@@ -53,14 +54,15 @@ parseNews = async (element, idx) => {
             const otherNews = await Promise.all(otherNewsElement.map(async node => {
                 if ((await node.$$('.fig-live-mark')).length > 0) {
                     let articleHref = await node.$eval('a', node => node.getAttribute('href'));
-                    let title = await node.$eval('a', node => node.innerText);
+                    const oriTitle = await node.$eval('a', node => node.innerText);
+                    const title = await asyncTranslate(oriTitle, LANG);
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                     return {
                         ranking: idx,
-                        title: await asyncTranslate(title, LANG),
-                        categories: determineCategory(title),
+                        title,
+                        categories: determineCategory(oriTitle),
+                        keywords: await asyncKeywordExtractor(title),
                         articleHref,
-                        // category: articleHref.split('/')[3],
                         isLive: true,
                         newsType: NewsTypes.CardWithLive,
                         liveNewsList,
@@ -92,13 +94,15 @@ parseNews = async (element, idx) => {
                 }
                 let liveElementListTemp = await Promise.all(subElementList.map(async node => {
                     if ((await node.$$('.fig-live-mark')).length > 0) {
-                        let articleHref = await node.$eval('a', node => node.getAttribute('href'));
-                        let title = processStr(await node.$eval('a', node => node.innerText));
+                        const articleHref = await node.$eval('a', node => node.getAttribute('href'));
+                        const oriTitle = processStr(await node.$eval('a', node => node.innerText));
+                        const title = await asyncTranslate(oriTitle, LANG);
                         const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
                         return {
                             ranking: idx,
-                            title: await asyncTranslate(title, LANG),
-                            categories: determineCategory(title),
+                            title,
+                            categories: determineCategory(oriTitle),
+                            keywords: await asyncKeywordExtractor(title),
                             articleHref,
                             isLive: true,
                             newsType: NewsTypes.CardWithLive,
@@ -130,6 +134,7 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     news.isLive = news.articleHref.includes('/live/');
     const oriTitle = await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     if (await ifSelectorExists(element, 'p[class*="fig-ensemble__chapo"]')) {
         const oriSummary = await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText);
         news.summary = await asyncTranslate(oriSummary, LANG);
@@ -185,6 +190,7 @@ parseProfileOrLiveNews = async (element, idx, isLive) => {
     }
     const oriTitle = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     news.articleHref = await element.$eval('a.fig-profile__link', node => node.getAttribute('href'));
     // objects.category = objects.articleHref.split('/')[3];
@@ -209,6 +215,7 @@ parseEnsembleLiveNews = async (element, idx) => {
     news.newsType = NewsTypes.CardWithImageAndLive;
     const oriTitle = processStr(await element.$eval('[class*="fig-ensemble__title"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'))
     // objects.category = objects.articleHref.split('/')[3];

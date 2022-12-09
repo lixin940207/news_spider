@@ -10,6 +10,7 @@ const {processStr, getImageHref, determineCategory} = require("../utils/util");
 const {asyncTranslate} = require("../nlp_utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToDetailPageAndParse, parseLiveNews} = require("./common");
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const LANG = require('../../config/config').LANGUAGE.BFM;
 
 moment.locale('en');
@@ -63,6 +64,7 @@ parseNews = async (element, idx) => {
     } else {
         oriTitle = processStr(await element.$eval('.content_item_title', node => node.innerText));
     }
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     news.isLive = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_live');
     news.isVideo = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_video');

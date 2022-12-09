@@ -11,6 +11,7 @@ const {ifSelectorExists} = require("../utils/util");
 const {NewsObject} = require("../utils/objects");
 const {parseArticle, parseLiveNews} = require("./common");
 const {determineCategory} = require("../utils/util");
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const BASE_URL = "https://www.bbc.com";
 const LANG = require('../../config/config').LANGUAGE.BBC;
 
@@ -126,6 +127,7 @@ getCommonPart = async (element) => {
     }
     const oriTitle = processStr(await element.$eval('[class*="nw-o-link-split__text"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     if ((await element.$$('p[class*="gs-c-promo-summary"]')).length > 0) {
         const oriSummary = processStr(await element.$eval('p[class*="gs-c-promo-summary"]', node => node.innerText));
