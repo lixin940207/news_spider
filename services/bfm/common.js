@@ -7,7 +7,7 @@ const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 
 const LANG = require('../../config/config').LANGUAGE.BFM;
 
-goToDetailPageAndParse = async (browser, url) => {
+const goToDetailPageAndParse = async (browser, url) => {
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
         waitUntil: 'load', timeout: 0
@@ -27,7 +27,7 @@ goToDetailPageAndParse = async (browser, url) => {
     return article;
 }
 
-goToArticlePageAndParse = async (pageContent) => {
+const goToArticlePageAndParse = async (pageContent) => {
     const article = new ArticleObject();
 
     const oriTitle = processStr(await pageContent.$eval('#contain_title', node => node.innerText));
@@ -47,25 +47,7 @@ goToArticlePageAndParse = async (pageContent) => {
     return article;
 }
 
-
-goToVideoPageAndParse = async (pageContent) => {
-    const article = new ArticleObject();
-
-    const oriTitle = processStr(await pageContent.$eval('#contain_title', node => node.innerText));
-    article.title = await asyncTranslate(oriTitle, LANG);
-    if (await ifSelectorExists(pageContent, '#content_description')) {
-        const oriSummary = await pageContent.$eval('#content_description', node => node.innerText);
-        article.summary = await asyncTranslate(oriSummary, LANG);
-    }
-    const timeText = await pageContent.$eval('#content_scroll_start time', node => node.innerText);
-    const date = new Date(moment(timeText.split(' à ')[0], 'DD/MM/YYYY', 'fr'));
-    date.setHours(Number(timeText.split(' à ')[1].split(':')[0]));
-    date.setMinutes(Number(timeText.split(' à ')[1].split(':')[1]));
-    article.publishTime = date;
-    return article;
-}
-
-parseLiveNews = async (browser, url) => {
+const parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'load', timeout: 0});
     try {

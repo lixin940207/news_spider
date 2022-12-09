@@ -17,7 +17,7 @@ const LANG = require('../../config/config').LANGUAGE.BBC;
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('BBC-a new crawling start.' + current_ts)
     browser = await puppeteer.launch({
@@ -53,7 +53,7 @@ crawl = async () => {
     await browser.close();
 }
 
-getNewsType = async (element) => {
+const getNewsType = async (element) => {
     return await element.evaluate(node => {
         const elementClass = node.getAttribute('class').toString();
         let newsType;
@@ -68,7 +68,7 @@ getNewsType = async (element) => {
     });
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const newsType = await getNewsType(element);
     const news = await getCommonPart(element);
     news.ranking = idx;
@@ -105,7 +105,7 @@ parseNews = async (element, idx) => {
     return news;
 }
 
-getCommonPart = async (element) => {
+const getCommonPart = async (element) => {
     const news = new NewsObject();
     // const content_element = await element.$('div.gs-c-promo-body');
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));

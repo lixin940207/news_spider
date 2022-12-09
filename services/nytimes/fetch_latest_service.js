@@ -15,7 +15,7 @@ const LANG = require("../../config/config").LANGUAGE.NYTimes;
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('NYTimes a new crawling start.' + current_ts);
     browser = await puppeteer.launch({
@@ -50,7 +50,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseBlockNews = async (browser, block, idx) => {
+const parseBlockNews = async (browser, block, idx) => {
     const className = await block.evaluate(node => node.getAttribute('class'));
     if (className.includes('css-17tuifc')) {
         return [];
@@ -86,7 +86,7 @@ parseBlockNews = async (browser, block, idx) => {
     }
 }
 
-parseValidURL = (url) => {
+const parseValidURL = (url) => {
     url = url.split('?')[0];
     if (url.endsWith('/')) url = url.substring(0, url.length - 1);
     const hrefSplit = url.split('/');
@@ -97,7 +97,7 @@ parseValidURL = (url) => {
 }
 
 
-parseSingleNews = async (browser, element, idx) => {
+const parseSingleNews = async (browser, element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     let href = await element.evaluate(node => node.getAttribute('href'));

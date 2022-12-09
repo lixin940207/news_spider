@@ -13,7 +13,7 @@ const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     logger.info('LeFigaro china objects start crawling.')
     browser = await puppeteer.launch({
         timeout: 0,
@@ -43,7 +43,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     const oriTitle = processStr(await element.$eval('.fig-profile__headline', node => node.innerText));

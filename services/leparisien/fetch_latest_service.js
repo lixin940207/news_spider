@@ -19,7 +19,7 @@ moment.locale('en');
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('LeParisien new crawling start.' + current_ts);
     browser = await puppeteer.launch({
@@ -50,7 +50,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = 'https:' + await element.$eval('a', node => node.getAttribute('href'));

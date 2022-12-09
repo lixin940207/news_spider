@@ -14,7 +14,7 @@ const LANG = 'zh';
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     logger.info('NYTimes china objects start crawling.')
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
@@ -47,7 +47,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     const oriTitle = await element.$eval('h3', node => node.innerText);

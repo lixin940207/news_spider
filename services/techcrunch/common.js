@@ -4,7 +4,7 @@ const {asyncTranslate} = require("../nlp_utils/translations");
 const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.TechCrunch;
 
-acceptCookie = async (page) => {
+const acceptCookie = async (page) => {
     await Promise.all([
         page.waitForNavigation(), // The promise resolves after navigation has finished
         page.click('button.btn.secondary.accept-all.consent_reject_all_2'), // Clicking the link will indirectly cause a navigation
@@ -13,7 +13,7 @@ acceptCookie = async (page) => {
     // await page.click('button.btn.secondary.accept-all.consent_reject_all_2');
 }
 
-parseArticle = async (browser, url) => {
+const parseArticle = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {

@@ -15,7 +15,7 @@ const LANG = require('../../config/config').LANGUAGE.BBC;
 
 let browser;
 
-crawl = async (URL, category) => {
+const crawl = async (URL, category) => {
     logger.info('BBC start crawling.', {
         category,
         URL,
@@ -57,7 +57,7 @@ crawl = async (URL, category) => {
 }
 
 
-parseNews = async (element, idx, category) => {
+const parseNews = async (element, idx, category) => {
     const news = new NewsObject();
     news.ranking = idx
 

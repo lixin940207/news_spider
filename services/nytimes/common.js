@@ -12,7 +12,7 @@ const LANG = require("../../config/config").LANGUAGE.NYTimes;
 const BASE_URL = "https://www.nytimes.com/";
 
 
-parseLiveNews = async (browser, url) => {
+const parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'domcontentloaded', timeout: 0});
     try {
@@ -47,7 +47,7 @@ parseLiveNews = async (browser, url) => {
     return {mainImageHref, publishTime: liveTime, liveNewsList};
 }
 
-parseArticle = async (browser, url) => {
+const parseArticle = async (browser, url) => {
     let article;
     if (url.split(BASE_URL)[1].startsWith('/article/')) {
         article = await goToArticleArticlePageAndParse(browser, url);
@@ -58,7 +58,7 @@ parseArticle = async (browser, url) => {
     return article;
 }
 
-goToArticlePageAndParse = async (browser, url) => {
+const goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
@@ -101,7 +101,7 @@ goToArticlePageAndParse = async (browser, url) => {
     return article;
 }
 
-goToArticleArticlePageAndParse = async (browser, url) => {
+const goToArticleArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {

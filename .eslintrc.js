@@ -7,8 +7,6 @@ module.exports = {
         "eslint:recommended",
     ],
     "rules": {
-        "import/extensions": "off",
-        "no-undef": "off",
     },
     "parserOptions": {
         // Required for certain syntax usages

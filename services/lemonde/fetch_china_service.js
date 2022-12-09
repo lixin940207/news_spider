@@ -10,11 +10,12 @@ const {NewsObject} = require("../utils/objects");
 const {getImageHref, ifSelectorExists} = require("../utils/util");
 const URL = require('../../config/config').CHINA_NEWS_URLS.LeMondeURL;
 const {goToArticlePageAndParse} = require('./common');
+const {asyncKeywordExtractor} = require("../nlp_utils/keyword_extractor");
 const LANG = require("../../config/config").LANGUAGE.LeMonde;
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     logger.info('LeMonde china objects start crawling.' + Date.now())
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
@@ -42,12 +43,13 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a.teaser__link', node => node.getAttribute('href'));
     const oriTitle = processStr(await element.$eval('.teaser__title', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
+    news.keywords = await asyncKeywordExtractor(news.title);
     news.imageHref = await getImageHref(element, 'picture source');
     news.categories = ['China', ...determineCategory(oriTitle)];
     news.newsType = NewsTypes.CardWithImage;

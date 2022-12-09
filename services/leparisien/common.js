@@ -7,7 +7,7 @@ const {getBodyBlockList} = require("../utils/util");
 const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeParisien;
 
-goToArticlePageAndParse = async (browser, url) => {
+const goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
@@ -48,7 +48,7 @@ goToArticlePageAndParse = async (browser, url) => {
     return article;
 }
 
-parseLiveNews = async (browser, url) => {
+const parseLiveNews = async (browser, url) => {
     const article = new ArticleObject();
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'load', timeout: 0});

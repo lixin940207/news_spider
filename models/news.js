@@ -1,7 +1,7 @@
 const BaseSchema = require('./base_schema');
 const mongoose = require('mongoose');
 
-newsSchema = new BaseSchema(
+const newsSchema = new BaseSchema(
     {
         platform: {type: String, required: true}
     }, {

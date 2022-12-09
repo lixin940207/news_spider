@@ -8,7 +8,7 @@ const {ifSelectorExists} = require("../utils/util");
 const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
-parseArticle = async (browser, url) => {
+const parseArticle = async (browser, url) => {
     const partName = url.split(/[./]/)[2];
     let article;
     if (partName === 'madame') {
@@ -24,7 +24,7 @@ parseArticle = async (browser, url) => {
     return article;
 }
 
-goToArticlePageAndParse = async (browser, url) => {
+const goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
@@ -69,7 +69,7 @@ goToArticlePageAndParse = async (browser, url) => {
     return article;
 }
 
-goToTVMagPageAndParse = async (browser, url) => {
+const goToTVMagPageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
@@ -97,7 +97,7 @@ goToTVMagPageAndParse = async (browser, url) => {
     return article;
 }
 
-goToMadArticlePageAndParse = async (browser, url) => {
+const goToMadArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
@@ -125,7 +125,7 @@ goToMadArticlePageAndParse = async (browser, url) => {
     return article;
 }
 
-goToEduArticlePageAndParse = async (browser, url) => {
+const goToEduArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
@@ -157,7 +157,7 @@ goToEduArticlePageAndParse = async (browser, url) => {
     return article;
 }
 
-parseLiveNews = async (browser, url) => {
+const parseLiveNews = async (browser, url) => {
     const pageLive = await browser.newPage();
     await pageLive.goto(url, {waitUntil: 'domcontentloaded', timeout: 0});
     try {

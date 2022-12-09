@@ -14,7 +14,7 @@ const LANG = require("../../config/config").LANGUAGE.LeFigaro;
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('LeFigaro a new crawling start.' + current_ts);
     browser = await puppeteer.launch({
@@ -45,7 +45,7 @@ crawl = async () => {
 }
 
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     let elementClassName = await element.evaluate(node => node.getAttribute('class'))
     if (elementClassName.includes('fig-ensemble')) {
         if ((await element.$$('article[class*="fig-ensemble__first-article"] .fig-live-mark')).length > 0) {
@@ -126,7 +126,7 @@ parseNews = async (element, idx) => {
     }
 }
 
-parseEnsembleNews = async (element, idx, hasRelated) => {
+const parseEnsembleNews = async (element, idx, hasRelated) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithTitleWide;
@@ -179,7 +179,7 @@ parseEnsembleNews = async (element, idx, hasRelated) => {
     return news;
 }
 
-parseProfileOrLiveNews = async (element, idx, isLive) => {
+const parseProfileOrLiveNews = async (element, idx, isLive) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.isLive = isLive;
@@ -209,7 +209,7 @@ parseProfileOrLiveNews = async (element, idx, isLive) => {
     return news;
 }
 
-parseEnsembleLiveNews = async (element, idx) => {
+const parseEnsembleLiveNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithImageAndLive;

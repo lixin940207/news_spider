@@ -16,7 +16,7 @@ const BASE_URL = 'https://www.france24.com';
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     logger.info('France24 china objects start crawling.')
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
@@ -49,7 +49,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
 

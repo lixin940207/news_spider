@@ -18,7 +18,7 @@ const BASE_URL = "https://www.leparisien.fr"
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     logger.info('LeParisien china objects start crawling.')
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
@@ -48,7 +48,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = 'https:' + await element.$eval('a', node => node.getAttribute('href'));

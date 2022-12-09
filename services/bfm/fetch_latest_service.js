@@ -17,7 +17,7 @@ moment.locale('en');
 
 let browser;
 
-crawl = async () => {
+const crawl = async () => {
     const current_ts = Math.floor(Date.now() / 60000);
     logger.info('BFM new crawling start.' + current_ts)
     browser = await puppeteer.launch({
@@ -49,7 +49,7 @@ crawl = async () => {
     await browser.close();
 }
 
-parseNews = async (element, idx) => {
+const parseNews = async (element, idx) => {
     if ((await element.evaluate(node => node.getAttribute('class'))).includes('content_type_externe')) {
         return;
     }

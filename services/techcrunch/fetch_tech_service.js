@@ -16,7 +16,7 @@ const TECH_URL = require('../../config/config').TECHNOLOGY.TechCrunchURL;
 
 let browser;
 
-crawl = async (URL, category) => {
+const crawl = async (URL, category) => {
     logger.info('TechCrunch start crawling.', {
         category,
         URL,
@@ -64,7 +64,7 @@ crawl = async (URL, category) => {
 }
 
 
-parseNews = async (element, idx, category) => {
+const parseNews = async (element, idx, category) => {
     if (await ifSelectorExists(element, '.article__event-title')) {
         return undefined;
     }
