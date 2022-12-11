@@ -79,7 +79,7 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
             }
         }
         article.publishTime = date;
-        article.abstract = await asyncSummarize(article);
+        article.abstract = await asyncSummarize(article, LANG);
         return article;
     }
 }

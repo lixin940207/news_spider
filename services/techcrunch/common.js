@@ -40,7 +40,7 @@ const parseArticle = async (browser, url) => {
         'div.article__content-wrap div.article-content > ul',
         LANG);
 
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
 
     return article;
 }

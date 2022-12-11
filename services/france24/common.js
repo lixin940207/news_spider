@@ -26,7 +26,7 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     article.bodyBlockList = await getBodyBlockList(pageContent,
         'article div[class*="t-content__body"] > p',
         LANG);
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
 
     return article;
 }

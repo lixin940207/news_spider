@@ -54,7 +54,7 @@ const parseArticle = async (browser, url) => {
     } else {
         article = await goToArticlePageAndParse(browser, url);
     }
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
     return article;
 }
 

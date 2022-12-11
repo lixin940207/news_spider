@@ -4,7 +4,7 @@ const {REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY} = require("../../config/config");
 
 async function asyncKeywordExtractor(title) {
     if (title.en) {
-        return await pushToQueueAndWaitForKeywordExtractRes(title.en);
+        return await pushToQueueAndWaitForKeywordExtractRes(title.en, 'en');
     } else {
         return [];
     }
@@ -19,7 +19,7 @@ async function pushToQueueAndWaitForKeywordExtractRes(q, lang) {
         if (existingRes) {
             return existingRes;
         }
-        await rPushAsync(REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY + lang, JSON.stringify({
+        await rPushAsync(REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY, JSON.stringify({
             q,
             key: key,
             task: "keyword_extract",

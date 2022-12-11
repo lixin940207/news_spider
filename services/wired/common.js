@@ -35,7 +35,7 @@ const parseArticle = async (browser, url) => {
         'div.grid-layout__content div.body.body__container.article__body div.body__inner-container figure.asset-embed picture img',
         LANG);
     article.bodyBlockList = article.bodyBlockList.filter(block => block.en !== 'FEATURED VIDEO' || block.en !== '');
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
     return article;
 }
 

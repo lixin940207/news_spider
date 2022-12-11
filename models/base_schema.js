@@ -24,7 +24,7 @@ const articleSchema = new Schema({
     summary: textSchema,
     articleHref: String,
     headImageHref: String,
-    publishTime: String,
+    publishTime: Date,
     bodyBlockList: [blockSchema],
 })
 
@@ -45,7 +45,7 @@ function BaseSchema() {
         region: {type: String},
         categories: [String],
         keywords: [String],
-        publishTime: {type: String, index: true},
+        publishTime: {type: Date, index: true},
         ranking: {type: Number},
         displayOrder: {type: Number, index: true},
         summary: textSchema,

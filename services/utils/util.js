@@ -120,7 +120,7 @@ async function getBodyBlockList(element, selectors, ori) {
         const ul_texts = blockList.filter(i => i.type === 'ul').map(i => i[ori]);
         const ul_texts_prediction = [];
         for (let i = 0; i < ul_texts.length; i++) {
-            ul_texts_prediction.append(await asyncTranslate(ul_texts, ori));
+            ul_texts_prediction.push(await asyncTranslate(ul_texts[i], ori));
         }
         const p_texts = blockList.filter(i => ['p', 'h2', 'blockquote'].includes(i.type)).map(i => processStr(i[ori]))
         const p_texts_prediction = await asyncTranslate(p_texts, ori);

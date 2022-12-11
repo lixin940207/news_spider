@@ -9,18 +9,18 @@ async function asyncSummarize(article, ori) {
         return undefined;
     }
     if (ENABLE_TRANSLATE) {
-        const summarize_resulsts = await Promise.all([
+        const summarize_results = await Promise.all([
             pushArticleToNLPSummarizeQueue(article, "en"),
             pushArticleToNLPSummarizeQueue(article, "fr"),
-            pushToQueueAndWaitForTranslateRes(article.abstract.en, 'en_zh')
         ]);
-        if (summarize_resulsts instanceof Error) {
+
+        if (summarize_results instanceof Error) {
             return {};
         }
         return {
-            en: summarize_resulsts[0],
-            fr: summarize_resulsts[1],
-            zh: summarize_resulsts[2],
+            en: summarize_results[0],
+            fr: summarize_results[1],
+            zh: await pushToQueueAndWaitForTranslateRes(summarize_results[0], 'en_zh'),
         };
     } else {
         if (ori === 'zh') {
@@ -30,7 +30,6 @@ async function asyncSummarize(article, ori) {
             [ori]: await pushArticleToNLPSummarizeQueue(article, ori),
         }
     }
-
 }
 
 async function pushArticleToNLPSummarizeQueue(article, lang) {

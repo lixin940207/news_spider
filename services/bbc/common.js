@@ -62,7 +62,7 @@ const parseArticle = async (browser, url) => {
     } else {
         article = await goToArticlePageAndParse(browser, url);
     }
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
     return article;
 }
 
@@ -139,9 +139,11 @@ const goToSportArticlePageAndParse = async (browser, url) => {
     article.publishTime = new Date(await pageContent.$eval('article time[datetime]', node => node.getAttribute('datetime')));
     if (await ifSelectorExists(pageContent, 'article > [class*="qa-story-body"]')) {
         article.bodyBlockList = await getBodyBlockList(pageContent,
-            'article > [class*="qa-story-body"] p,' +
-            'article > [class*="qa-story-body"] ul,' +
-            'article > [class*="qa-story-body"] .story-body__crosshead',
+            'article > [class*="qa-story-body"] > p,' +
+            'article > [class*="qa-story-body"] > div > p,' +
+            'article > [class*="qa-story-body"] > ul,' +
+            'article > [class*="qa-story-body"] > h3,' +
+            'article > [class*="qa-story-body"] > .story-body__crosshead',
             LANG);
     } else if (await ifSelectorExists(pageContent, 'article > [class*="StyledSummary"]')) {
         article.bodyBlockList = await getBodyBlockList(pageContent,

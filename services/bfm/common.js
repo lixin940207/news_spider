@@ -23,7 +23,7 @@ const goToDetailPageAndParse = async (browser, url) => {
     } else {
         article = await goToArticlePageAndParse(pageContent, url);
     }
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
     return article;
 }
 

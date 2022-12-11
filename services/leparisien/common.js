@@ -43,7 +43,7 @@ const goToArticlePageAndParse = async (browser, url) => {
         'article section#left [class*="article-section"] .content > h2,' +
         'article section#left [class*="article-section"] .content .essential-card_container_element *',
         LANG);
-    article.abstract = await asyncSummarize(article);
+    article.abstract = await asyncSummarize(article, LANG);
 
     return article;
 }
