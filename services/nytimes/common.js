@@ -163,7 +163,7 @@ async function parseChineseArticle(browser, url) {
     article.publishTime = new Date(timeText.replace(' ', 'T') + '+08:00');
     article.headImageHref = await getImageHref(pageContent, 'figure.article-span-photo img');
 
-    article.bodyBlockList = await getBodyBlockList(pageContent, 'section.article-body div.article-paragraph', LANG);
+    article.bodyBlockList = await getBodyBlockList(pageContent, 'section.article-body div.article-paragraph', 'zh');
     return article;
 }
 

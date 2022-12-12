@@ -25,7 +25,7 @@ async function pushToQueueAndWaitForKeywordExtractRes(q, lang) {
             task: "keyword_extract",
             lang,
         }));
-        return await getResultFromRedis(key);
+        return await getResultFromRedis(key, true, new Date());
     }
 }
 

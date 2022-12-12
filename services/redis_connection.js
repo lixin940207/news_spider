@@ -25,17 +25,17 @@ const lPopAsync = promisify(redisClient.lpop).bind(redisClient);
 const delAsync = promisify(redisClient.del).bind(redisClient);
 const setExpireAsync = promisify(redisClient.expire).bind(redisClient)
 
-async function getResultFromRedis(sign, recursive=true) {
+async function getResultFromRedis(sign, recursive, start) {
     const reply = await getAsync(sign);
     if (reply !== null && reply !== undefined) {
         // await delAsync(sign);
-        await setExpireAsync(sign, 5400);
+        await setExpireAsync(sign, 9000);
         return JSON.parse(reply);
     } else {
-        if (recursive) {
-            return await getResultFromRedis(sign);
-        } else {
+        if (!recursive || (new Date() - start) > 300000) {
             return null;
+        } else {
+            return await getResultFromRedis(sign, true, start);
         }
     }
 }

@@ -40,7 +40,7 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
             task: "translation",
             lang,
         }));
-        return await getResultFromRedis(key);
+        return await getResultFromRedis(key, true, new Date());
     }
 }
 

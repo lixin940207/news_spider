@@ -71,7 +71,7 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
                 lang,
             })
         );
-        return await getResultFromRedis(key);
+        return await getResultFromRedis(key, true, new Date());
     }
 }
 
