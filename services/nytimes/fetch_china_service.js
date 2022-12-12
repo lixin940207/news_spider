@@ -69,7 +69,7 @@ const parseNews = async (element, idx) => {
 }
 
 if (process.env.ENV === 'PRODUCTION') {
-    schedule.scheduleJob("39 * * * *", crawl);
+    schedule.scheduleJob("36 0,2,4,6,8,10,12,14,16,18,20,22 * * *", crawl);
 } else {
     crawl()
         .then(() => process.exit())

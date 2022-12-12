@@ -78,7 +78,7 @@ const parseNews = async (element, idx, category) => {
 }
 
 if (process.env.ENV === 'PRODUCTION') {
-    schedule.scheduleJob("0 * * * *", () => crawl(CHINA_URL, "China"));
+    schedule.scheduleJob("0 1,3,5,7,9,11,13,15,17,19,21,23 * * *", () => crawl(CHINA_URL, "China"));
 } else {
     crawl(CHINA_URL, "China")
         .then(() => process.exit())

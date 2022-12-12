@@ -230,7 +230,7 @@ const parseEnsembleLiveNews = async (element, idx) => {
 }
 
 if (process.env.ENV === 'PRODUCTION') {
-    schedule.scheduleJob("24 * * * *", crawl);
+    schedule.scheduleJob("58 1,3,5,7,9,11,13,15,17,19,21,23 * * *", crawl);
 } else {
     crawl()
         .then(() => process.exit())
