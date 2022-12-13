@@ -32,7 +32,7 @@ async function getResultFromRedis(sign, recursive, start) {
         await setExpireAsync(sign, 9000);
         return JSON.parse(reply);
     } else {
-        if (!recursive || (new Date() - start) > 300000) {
+        if (!recursive || (new Date() - start) > 600000) {
             return null;
         } else {
             return await getResultFromRedis(sign, true, start);
