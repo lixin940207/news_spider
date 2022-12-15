@@ -1,13 +1,12 @@
 const redis = require("redis");
-// const {translateText} = require("./utils/translations");
-// const {REDIS_INPUT_QUEUE_KEY} = require("../config/config");
 
 const redis_host = process.env.REDIS_HOST || '127.0.0.1';
 const redis_port = process.env.REDIS_PORT || 6379;
 
 const redisClient = redis.createClient({
     host: redis_host,
-    port: redis_port
+    port: redis_port,
+    tls: {},
 });
 
 redisClient.on("ready", function () {
