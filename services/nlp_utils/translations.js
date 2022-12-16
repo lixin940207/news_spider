@@ -1,6 +1,5 @@
 const md5 = require('md5');
-const {getResultFromRedis} = require("../redis_connection");
-const {rPushAsync} = require("../redis_connection");
+const {getResultFromRedis, redis} = require("../redis_connection");
 const {REDIS_NLP_TRANSLATE_QUEUE_KEY, ENABLE_TRANSLATE} = require("../../config/config");
 
 async function asyncTranslate(text, ori) {
@@ -34,7 +33,7 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
         if (existingRes) {
             return existingRes;
         }
-        await rPushAsync(REDIS_NLP_TRANSLATE_QUEUE_KEY + lang, JSON.stringify({
+        await redis.rpush(REDIS_NLP_TRANSLATE_QUEUE_KEY + lang, JSON.stringify({
             q,
             key: key,
             task: "translation",

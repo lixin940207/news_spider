@@ -1,6 +1,5 @@
 const md5 = require('md5');
-const {getResultFromRedis} = require("../redis_connection");
-const {rPushAsync} = require("../redis_connection");
+const {getResultFromRedis, redis} = require("../redis_connection");
 const {REDIS_NLP_SUMMARIZE_QUEUE_KEY, ENABLE_TRANSLATE, ENABLE_SUMMARIZE} = require("../../config/config");
 const {pushToQueueAndWaitForTranslateRes} = require("./translations");
 
@@ -64,7 +63,7 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
         if (existingRes) {
             return existingRes;
         }
-        await rPushAsync(REDIS_NLP_SUMMARIZE_QUEUE_KEY, JSON.stringify({
+        await redis.rpush(REDIS_NLP_SUMMARIZE_QUEUE_KEY, JSON.stringify({
                 q: toBeSummarizedList,
                 key,
                 task: "summarize",

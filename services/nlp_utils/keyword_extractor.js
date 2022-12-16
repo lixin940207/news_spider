@@ -1,5 +1,5 @@
 const md5 = require("md5");
-const {getResultFromRedis, rPushAsync} = require("../redis_connection");
+const {getResultFromRedis, redis} = require("../redis_connection");
 const {REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY} = require("../../config/config");
 
 async function asyncKeywordExtractor(title) {
@@ -19,7 +19,7 @@ async function pushToQueueAndWaitForKeywordExtractRes(q, lang) {
         if (existingRes) {
             return existingRes;
         }
-        await rPushAsync(REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY, JSON.stringify({
+        await redis.rpush(REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY, JSON.stringify({
             q,
             key: key,
             task: "keyword_extract",

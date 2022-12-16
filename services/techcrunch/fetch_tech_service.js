@@ -98,7 +98,7 @@ if (process.env.ENV === 'PRODUCTION') {
     crawl(TECH_URL, "Tech")
         .then(() => process.exit())
         .catch(r => {
-                logger.error(r);
+                logger.error(r.stack);
                 process.exit(1);
             }
         );
