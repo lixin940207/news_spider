@@ -81,6 +81,7 @@ const parseNews = async (element, idx) => {
         news.article = await goToArticlePageAndParse(browser, news.articleHref);
         news.publishTime = news.article.publishTime
     }
+    logger.info("parsed news " + news.articleHref, {platform: "LeParisien"});
     return news;
 }
 

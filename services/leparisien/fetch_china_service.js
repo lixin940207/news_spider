@@ -19,7 +19,7 @@ const BASE_URL = "https://www.leparisien.fr"
 let browser;
 
 const crawl = async () => {
-    logger.info('LeParisien china objects start crawling.')
+    logger.info('LeParisien china start crawling.')
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -28,9 +28,9 @@ const crawl = async () => {
         timeout: 0,
         waitUntil: "load",
     });
-    logger.info('got to the page.')
+    logger.info('LeParisien china got to the page.')
     await page.waitForSelector('#fusion-app', {timeout: 0})
-    logger.info('loaded')
+    logger.info('LeParisien china loaded')
     const elementList = (await page.$$('#fusion-app [class*="story-preview"]'))
 
     let allNewsResult = [];
@@ -39,12 +39,12 @@ const crawl = async () => {
     }
     const newsResult = allNewsResult.filter(i => i !== undefined);
 
-    logger.info('LeParisien parsing all objects finish.')
+    logger.info('LeParisien China parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
         element.platform = "LeParisien";
         return element;
     }));
-    logger.info('LeParisien inserting into db finish.');
+    logger.info('LeParisien China inserting into db finish.');
     await browser.close();
 }
 
@@ -68,6 +68,7 @@ const parseNews = async (element, idx) => {
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
+    logger.info("parsed news " + news.articleHref, {platform: "LeParisien China"});
     return news;
 }
 

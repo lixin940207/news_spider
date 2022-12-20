@@ -152,6 +152,7 @@ const getCommonPart = async (element) => {
         }
         news.newsType = NewsTypes.CardWithImageAndLive;
     }
+    logger.info("parsed news " + news.articleHref, {platform: "BBC"});
     return news;
 }
 

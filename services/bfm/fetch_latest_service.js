@@ -28,9 +28,9 @@ const crawl = async () => {
         timeout: 0,
         waitUntil: "load",
     });
-    logger.info('got to the page.')
+    logger.info('BFM got to the page.')
     await page.waitForSelector('main', {timeout: 0})
-    logger.info('loaded')
+    logger.info('BFM loaded')
     const elementList = (await page.$$('article[class*="une_item"], article[class*="duo_liste"]'))
 
     let allNewsResult = [];
@@ -88,6 +88,7 @@ const parseNews = async (element, idx) => {
             return;
         }
     }
+    logger.info("parsed news " + news.articleHref, {platform: "BFM"});
     return news;
 }
 

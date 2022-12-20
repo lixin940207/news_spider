@@ -176,6 +176,7 @@ const parseEnsembleNews = async (element, idx, hasRelated) => {
     } else if (news.isLive) {
         news.newsType = NewsTypes.CardWithLive;
     }
+    logger.info("parsed news " + news.articleHref, {platform: "Lefigaro"});
     return news;
 }
 
@@ -206,6 +207,7 @@ const parseProfileOrLiveNews = async (element, idx, isLive) => {
         news.article = await parseArticle(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
     }
+    logger.info("parsed news " + news.articleHref, {platform: "Lefigaro"});
     return news;
 }
 
@@ -226,6 +228,9 @@ const parseEnsembleLiveNews = async (element, idx) => {
     const {liveNewsList, latestTime} = await parseLiveNews(browser, news.articleHref);
     news.liveNewsList = liveNewsList;
     news.publishTime = latestTime;
+
+    logger.info("parsed news " + news.articleHref, {platform: "Lefigaro"});
+
     return news;
 }
 

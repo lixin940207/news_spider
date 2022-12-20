@@ -17,7 +17,7 @@ const BASE_URL = 'https://www.france24.com';
 let browser;
 
 const crawl = async () => {
-    logger.info('France24 china objects start crawling.')
+    logger.info('France24 China start crawling.')
     browser = await puppeteer.launch({
         args: ['--no-sandbox'],
     });
@@ -26,9 +26,9 @@ const crawl = async () => {
         timeout: 0,
         waitUntil: "load",
     });
-    logger.info('got to the page.')
+    logger.info('France24 China got to the page.')
     await page.waitForSelector('main div[class*="t-content"]', {timeout: 0})
-    logger.info('loaded')
+    logger.info('France24 China loaded')
     const containerList = (await page.$$('main div[class*="t-content"] section.t-content__section-pb')).slice(0, 3);
     const elementList = (await Promise.all(containerList.map(async node => {
         return await node.$$('div[class*="m-item-list-article"]')
@@ -40,12 +40,12 @@ const crawl = async () => {
     }
     allNewsResult = allNewsResult.filter(i => i !== undefined);
 
-    logger.info('France24 parsing all objects finish.')
+    logger.info('France24 China parsing all objects finish.')
     await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "France24";
         return element;
     }));
-    logger.info('France24 inserting into db finish.');
+    logger.info('France24 China inserting into db finish.');
     await browser.close();
 }
 
@@ -57,15 +57,18 @@ const parseNews = async (element, idx) => {
     if (!determineCategory(oriTitle).includes('China')) {
         return;
     }
-    news.categories = ['China', determineCategory(oriTitle)];
+    news.categories = ['China', ...determineCategory(oriTitle)];
     news.title = await asyncTranslate(oriTitle, LANG);
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
     if ((await element.$$('img[src]')).length > 0) {
         news.imageHref = (await element.$eval('img[src]', node => node.innerText)).split('"')[1];
     }
-    news.newsType = NewsTypes.CardWithImage
+    news.newsType = NewsTypes.CardWithImage;
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
-    news.publishTime = news.article.publishTime
+    news.publishTime = news.article.publishTime;
+
+    logger.info("parsed news " + news.articleHref, {platform: "France24 China"});
+
     return news;
 }
 

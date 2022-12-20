@@ -27,9 +27,9 @@ const crawl = async () => {
         timeout: 0,
         waitUntil: "load",
     });
-    logger.info('BFM got to the page.')
+    logger.info('BFM China got to the page.')
     await page.waitForSelector('main', {timeout: 0})
-    logger.info('BFM loaded')
+    logger.info('BFM China loaded')
     const elementList = await page.$$('article[class*="content_item content_type"]');
 
     let allNewsResult = [];
@@ -39,12 +39,12 @@ const crawl = async () => {
     const newsResult = allNewsResult.filter(i => i !== undefined);
     console.log(newsResult.map(i => i.publishTime));
 
-    logger.info('BFM parsing all objects finish.')
+    logger.info('BFM China parsing all objects finish.')
     await News.bulkUpsertNews(newsResult.map(element => {
         element.platform = "BFM";
         return element;
     }));
-    logger.info('BFM inserting into db finish.');
+    logger.info('BFM China inserting into db finish.');
     await browser.close();
 }
 
@@ -79,7 +79,7 @@ const parseNews = async (element, idx) => {
         return;
     }
     news.publishTime = news.article.publishTime;
-
+    logger.info("parsed news " + news.articleHref, {platform: "BFM China"});
     return news;
 }
 

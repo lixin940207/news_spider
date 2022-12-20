@@ -140,9 +140,8 @@ const parseSingleNews = async (browser, element, idx) => {
         news.article = await parseArticle(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
     }
-    logger.info("parsed", {
-        url: news.articleHref
-    })
+    logger.info("parsed news " + news.articleHref, {platform: "NYT"});
+
     return news;
 }
 

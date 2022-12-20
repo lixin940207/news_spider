@@ -1,10 +1,14 @@
 const winston = require('winston');
 require('winston-daily-rotate-file');
 
-const {transports} = winston;
+const {transports, format} = winston;
 const {File, Console} = transports;
 
 const logger = winston.createLogger({
+    format: format.combine(
+        format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}),
+        format.json(),
+    ),
     transports: [
         new File({
             name: 'base_logger',

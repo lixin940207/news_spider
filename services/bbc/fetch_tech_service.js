@@ -46,12 +46,12 @@ const crawl = async (URL, category) => {
     allNewsResult = allNewsResult.filter(i => i !== undefined);
     logger.info('BBC-parsed all objects.', {
         category
-    })
+    });
     await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "BBC";
         return element;
     }));
-    logger.info('BBC-inserted into db.')
+    logger.info('BBC-inserted into db.', {category});
     await page.close();
     await browser.close();
 }
@@ -90,7 +90,7 @@ const parseNews = async (element, idx, category) => {
             news.newsType = NewsTypes.CardWithTitleWide;
         }
     }
-    logger.info("parsed news ", {href: news.articleHref});
+    logger.info("parsed news " + news.articleHref, {platform: "BBC Tech"});
     return news;
 }
 

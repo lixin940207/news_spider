@@ -85,7 +85,7 @@ const parseNews = async (element, idx, category) => {
     news.newsType = NewsTypes.CardWithImage;
 
     news.categories = [category];
-    logger.info("parsed news ", {href: news.articleHref});
+    logger.info("parsed news " + news.articleHref, {platform: "Wired"});
     return news;
 }
 

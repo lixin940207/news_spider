@@ -23,7 +23,7 @@ const crawl = async () => {
     await page.goto(URL, {waitUntil: 'load'});
     logger.info('LeFigaro China got to the page.');
     await page.waitForSelector('section.fig-main');
-    logger.info('loaded');
+    logger.info('LeFigaro China loaded');
     const elementList = await page.$$('section.fig-main article.fig-profile')
 
     let allNewsResult = [];
@@ -31,14 +31,14 @@ const crawl = async () => {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
 
-    logger.info('LeFigaro parsed all objects.')
+    logger.info('LeFigaro China parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.flat()
         .filter(element => element !== undefined)
         .map(element => {
             element.platform = "LeFigaro";
             return element;
         }));
-    logger.info('LeFigaro-inserted into db.')
+    logger.info('LeFigaro China inserted into db.')
     await page.close();
     await browser.close();
 }
@@ -65,7 +65,7 @@ const parseNews = async (element, idx) => {
     }
     news.article = await parseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
-    logger.info('parsed ' + news.articleHref);
+    logger.info("parsed news " + news.articleHref, {platform: "Lefigaro China"});
     return news;
 }
 

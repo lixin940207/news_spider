@@ -25,9 +25,9 @@ const crawl = async () => {
         timeout: 0,
         waitUntil: "load",
     });
-    logger.info('LeMonde got to the page.')
+    logger.info('LeMonde China got to the page.')
     await page.waitForSelector('section#river')
-    logger.info('loaded')
+    logger.info('LeMonde China loaded')
     const elementList = await page.$$('section#river div.thread')
 
     let allNewsResult = [];
@@ -39,7 +39,7 @@ const crawl = async () => {
         element.platform = "LeMonde";
         return element;
     }));
-    logger.info('LeMonde-inserting into db finish.')
+    logger.info('LeMonde China inserting into db finish.')
     await browser.close();
 }
 
@@ -60,6 +60,8 @@ const parseNews = async (element, idx) => {
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
     news.publishTime = news.article.publishTime
+
+    logger.info("parsed news " + news.articleHref, {platform: "LeMonde China"});
 
     return news;
 }

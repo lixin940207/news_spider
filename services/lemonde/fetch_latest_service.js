@@ -165,7 +165,7 @@ const parseNews = async (element, idx) => {
             return [news].concat(liveNewsList);
         }
     }
-    logger.info("parsed news: " + news.articleHref);
+    logger.info("parsed news " + news.articleHref, {platform: "LeMonde"});
     return news;
 }
 if (process.env.ENV === 'PRODUCTION') {

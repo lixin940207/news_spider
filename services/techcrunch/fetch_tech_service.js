@@ -88,7 +88,7 @@ const parseNews = async (element, idx, category) => {
     news.summary = await asyncTranslate(oriSummary, LANG);
 
     news.categories = [category, ...determineCategory(oriTitle)];
-    logger.info("parsed news ", {href: news.articleHref});
+    logger.info("parsed news " + news.articleHref, {platform: "TechCrunch"});
     return news;
 }
 

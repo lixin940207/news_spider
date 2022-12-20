@@ -82,6 +82,8 @@ const parseNews = async (element, idx) => {
         }));
         news.newsType = NewsTypes.CardWithImageAndSubtitle;
     }
+    logger.info("parsed news " + news.articleHref, {platform: "France24"});
+
     return news;
 }
 

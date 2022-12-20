@@ -24,25 +24,25 @@ const crawl = async () => {
         waitUntil: 'load',
         timeout: 0
     });
-    logger.info('NYTimes loaded.');
+    logger.info('NYTimes China loaded.');
     await page.waitForSelector('div#sectionWrapper', {timeout: 0});
 
     const news_list = await page.$$(
         'div#sectionWrapper div#sectionLeadPackage div[class*="collection-item"], ' +
         'div#sectionWrapper ul.autoList > li[class*="autoListStory"]');
-    logger.info('NYTimes got dom.');
+    logger.info('NYTimes China got dom.');
 
     let allNewsResult = [];
     for (let i = 0; i < news_list.length; i++) {
         allNewsResult.push(await parseNews(news_list[i], i + 1));
     }
 
-    logger.info('NYTimes-parsed all objects.')
+    logger.info('NYTimes China parsed all objects.')
     await News.bulkUpsertNews(allNewsResult.map(element => {
         element.platform = "NYTimes";
         return element;
     }));
-    logger.info('NYTimes-inserted into db.')
+    logger.info('NYTimes China inserted into db.')
     await page.close();
     await browser.close();
 }
@@ -65,6 +65,7 @@ const parseNews = async (element, idx) => {
 
     news.article = await parseChineseArticle(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
+    logger.info("parsed news " + news.articleHref, {platform: "NYT China"});
     return news;
 }
 

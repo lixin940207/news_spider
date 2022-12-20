@@ -51,7 +51,7 @@ const crawl = async (URL, category) => {
         element.platform = "BBC";
         return element;
     }));
-    logger.info('BBC-inserted into db.')
+    logger.info('BBC-inserted into db.', {category})
     await page.close();
     await browser.close();
 }
@@ -72,9 +72,9 @@ const parseNews = async (element, idx, category) => {
         news.articleHref = BASE_URL + await element.$eval('a[class*="lx-stream-post__header-link"]', node => node.getAttribute('href'));
         news.article = await parseArticle(browser, news.articleHref);
         news.publishTime = news.article.publishTime;
+        logger.info("parsed news " + news.articleHref, {platform: "BBC China"});
         return news;
     }
-    logger.info("parsed news ", news.articleHref);
 }
 
 if (process.env.ENV === 'PRODUCTION') {
