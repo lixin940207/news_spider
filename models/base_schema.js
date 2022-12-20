@@ -26,6 +26,7 @@ const articleSchema = new Schema({
     headImageHref: String,
     publishTime: Date,
     bodyBlockList: [blockSchema],
+    abstract: textSchema,
 })
 
 const liveSchema = new Schema({

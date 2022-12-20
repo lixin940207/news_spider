@@ -125,17 +125,22 @@ async function getBodyBlockList(element, selectors, ori) {
         const p_texts = blockList.filter(i => ['p', 'h2', 'blockquote'].includes(i.type)).map(i => processStr(i[ori]))
         const p_texts_prediction = await asyncTranslate(p_texts, ori);
 
-        assert(p_texts.length === p_texts_prediction.en.length)
-        assert(p_texts.length === p_texts_prediction.fr.length)
-        assert(p_texts.length === p_texts_prediction.zh.length)
-
+        if (p_texts_prediction.en) {
+            assert(p_texts.length === p_texts_prediction.en.length)
+        }
+        if (p_texts_prediction.fr) {
+            assert(p_texts.length === p_texts_prediction.fr.length)
+        }
+        if (p_texts_prediction.zh) {
+            assert(p_texts.length === p_texts_prediction.zh.length)
+        }
         for (let i = blockList.length - 1; i >= 0; i--) {
             if (blockList[i].type === 'ul') {
                 blockList[i] = ul_texts_prediction.pop()
             } else if (['p', 'h2', 'blockquote'].includes(blockList[i].type)) {
-                blockList[i].en = p_texts_prediction.en.pop();
-                blockList[i].fr = p_texts_prediction.fr.pop();
-                blockList[i].zh = p_texts_prediction.zh.pop();
+                blockList[i].en = p_texts_prediction.en ? p_texts_prediction.en.pop() : undefined;
+                blockList[i].fr = p_texts_prediction.fr ? p_texts_prediction.fr.pop() : undefined;
+                blockList[i].zh = p_texts_prediction.zh ? p_texts_prediction.zh.pop() : undefined;
             }
         }
     }
