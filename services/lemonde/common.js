@@ -78,7 +78,10 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
                 date = new Date(moment(timeText, 'DD MMMM YYYY', 'fr'));
             }
         }
-        article.headImageHref = article.bodyBlockList.filter(block => block.type === 'img')[0].src;
+        const blockImages = article.bodyBlockList.filter(block => block.type === 'img');
+        if (blockImages.length > 0) {
+            article.headImageHref = blockImages[0].src;
+        }
         article.bodyBlockList.filter(block => block.src !== article.headImageHref);
         article.publishTime = date;
         article.abstract = await asyncSummarize(article, LANG);

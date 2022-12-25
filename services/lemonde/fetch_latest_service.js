@@ -33,7 +33,13 @@ const crawl = async () => {
 
     let allNewsResult = [];
     for (let i = 0; i < elementList.length; i++) {
-        allNewsResult.push(await parseNews(elementList[i], i));
+        let tmp;
+        try {
+            tmp = await parseNews(elementList[i], i);
+        } catch (e) {
+            tmp = await parseNews(elementList[i], i);
+        }
+        allNewsResult.push(tmp);
     }
     allNewsResult = allNewsResult.flat().filter(news => news !== undefined);
     allNewsResult = allNewsResult.map(element => {
@@ -112,6 +118,9 @@ const parseNews = async (element, idx) => {
             let listNews = await Promise.all(relatedElementList.map(async element => {
                 if ((await element.$$('[class*="flag-live-cartridge"]')).length === 0) {
                     const articleHref = await element.evaluate(node => node.getAttribute('href'));
+                    if (await ifSelectorExists(element, 'span.icon__premium')) {
+                        return;
+                    }
                     const title = processStr(await element.evaluate(node => node.innerText));
                     const article = await goToArticlePageAndParse(browser, articleHref);
                     return {
@@ -138,13 +147,20 @@ const parseNews = async (element, idx) => {
             news.relatedNewsList = (await Promise.all(relatedElementList.map(async element => {
                 if ((await element.$$('[class*="flag-live-cartridge"]')).length === 0) {
                     const title = processStr(await element.evaluate(node => node.innerText));
+                    if (await ifSelectorExists(element, 'span.icon__premium')){
+                        return;
+                    }
                     return {
                         title: await asyncTranslate(title, LANG),
                         article: await goToArticlePageAndParse(browser, await element.evaluate(node => node.getAttribute('href'))),
                     }
                 }
             }))).filter(i => i !== undefined);
-            news.newsType = NewsTypes.CardWithImageAndSubtitle;
+            if (news.relatedNewsList.length === 0) {
+                news.newsType = NewsTypes.CardWithImage;
+            } else {
+                news.newsType = NewsTypes.CardWithImageAndSubtitle;
+            }
             let liveNewsList = await Promise.all(relatedElementList.map(async element => {
                 if ((await element.$$('[class*="flag-live-cartridge"]')).length > 0) {
                     const articleHref = await element.evaluate(node => node.getAttribute('href'));
