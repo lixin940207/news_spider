@@ -38,7 +38,7 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
     }
 
     for (const block of article.bodyBlockList) {
-        if (block.type in ['h2', 'p', 'blockquote',]) {
+        if (['h2', 'p', 'blockquote',].includes(block.type)) {
             toBeSummarized += block[lang];
         }
     }
