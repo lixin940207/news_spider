@@ -181,6 +181,9 @@ const parseNews = async (element, idx) => {
             return [news].concat(liveNewsList);
         }
     }
+    else {
+        if (await ifSelectorExists(element, 'span.icon__premium')) return;
+    }
     logger.info("parsed news " + news.articleHref, {platform: "LeMonde"});
     return news;
 }
