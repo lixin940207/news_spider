@@ -32,39 +32,26 @@ async function asyncSummarize(article, ori) {
 }
 
 async function pushArticleToNLPSummarizeQueue(article, lang) {
-    const toBeSummarizedList = []
+    let toBeSummarized = '';
     if (article.summary[lang]) {
-        toBeSummarizedList.push(article.summary[lang]);
+        toBeSummarized += article.summary[lang];
     }
-    let tempStr = "";
 
     for (const block of article.bodyBlockList) {
-        if (block.type === 'h2') {
-            if (tempStr !== "") {
-                toBeSummarizedList.push(tempStr);
-            }
-            tempStr = block[lang];
-        } else if (block[lang] !== undefined) {
-            if (block[lang] instanceof Array) {
-                tempStr += ' ' + block[lang].join(' ');
-            } else {
-                tempStr += ' ' + block[lang];
-            }
+        if (block.type in ['h2', 'p', 'blockquote',]) {
+            toBeSummarized += block[lang];
         }
     }
-    if (tempStr !== "") {
-        toBeSummarizedList.push(tempStr);
-    }
-    if (toBeSummarizedList.length === 0) {
+    if (toBeSummarized === '') {
         return "";
     } else {
-        const key = "summarize" + '_' + lang + '_' + md5(toBeSummarizedList.join());
+        const key = "summarize" + '_' + lang + '_' + md5(toBeSummarized);
         const existingRes = await getResultFromRedis(key, false);
         if (existingRes) {
             return existingRes;
         }
         await redis.rpush(REDIS_NLP_SUMMARIZE_QUEUE_KEY, JSON.stringify({
-                q: toBeSummarizedList,
+                q: toBeSummarized,
                 key,
                 task: "summarize",
                 lang,
