@@ -60,12 +60,18 @@ const parseNews = async (element, idx) => {
     news.categories = ['China', ...determineCategory(oriTitle)];
     news.title = await asyncTranslate(oriTitle, LANG);
     news.articleHref = BASE_URL + await element.$eval('a', node => node.getAttribute('href'));
+    if ([encodeURIComponent('vidéo'), encodeURIComponent('émissions')].includes(news.articleHref.split('/')[4])) {
+        return undefined;
+    }
     if ((await element.$$('img[src]')).length > 0) {
         news.imageHref = (await element.$eval('img[src]', node => node.innerText)).split('"')[1];
     }
     news.newsType = NewsTypes.CardWithImage;
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
+    if (!news.imageHref && news.article.headImageHref) {
+        news.imageHref = news.article.headImageHref;
+    }
 
     logger.info("parsed news " + news.articleHref, {platform: "France24 China"});
 

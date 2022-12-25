@@ -10,6 +10,7 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     const pageContent = await browser.newPage();
     await pageContent.goto(url, {
         waitUntil: 'load',
+        timeout: 0,
     });
     await pageContent.bringToFront();
     await pageContent.waitForSelector('main article');
@@ -18,8 +19,8 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     article.title = await asyncTranslate(oriTitle, LANG);
     const oriSummary = processStr(await pageContent.$eval('article .t-content__chapo', node => node.innerText));
     article.summary = await asyncTranslate(oriSummary, LANG);
-    if (await ifSelectorExists(pageContent, 'div.t-content__main-media picture img')) {
-        article.headImageHref = await getImageHref(pageContent, 'div.t-content__main-media picture img');
+    if (await ifSelectorExists(pageContent, 'div.t-content__main-media figure picture img')) {
+        article.headImageHref = await getImageHref(pageContent, 'div.t-content__main-media figure picture img');
     }
     article.publishTime = new Date(await pageContent.$eval('article time[datetime]', node => node.getAttribute('datetime')));
 
