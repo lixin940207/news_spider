@@ -1,11 +1,13 @@
 const moment = require('moment');
 const logger = require("../../config/logger");
 const {asyncTranslate} = require("../nlp_utils/translations");
-const {processStr} = require("../utils/util");
+const {processStr, ifSelectorExists} = require("../utils/util");
 const {ArticleObject} = require("../utils/objects");
 const {getBodyBlockList} = require("../utils/util");
 const {asyncSummarize} = require("../nlp_utils/nlp_summarize");
 const LANG = require("../../config/config").LANGUAGE.LeParisien;
+const URL = require('../../config/config').ORIGINAL_URLS.LeParisienURL;
+
 
 const goToArticlePageAndParse = async (browser, url) => {
     const article = new ArticleObject();
@@ -38,6 +40,9 @@ const goToArticlePageAndParse = async (browser, url) => {
         date.setMinutes(Number(publishTime.split(' à ')[1].split('h')[1]));
     }
     article.publishTime = date;
+    if (await ifSelectorExists(pageContent, 'div#primary_left figure img')) {
+        article.headImageHref = URL + await pageContent.$eval('div#primary_left figure img', node => node.getAttribute('src'));
+    }
     article.bodyBlockList = await getBodyBlockList(pageContent,
         'article section#left [class*="article-section"] .content > p,' +
         'article section#left [class*="article-section"] .content > h2,' +

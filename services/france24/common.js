@@ -24,9 +24,18 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
     }
     article.publishTime = new Date(await pageContent.$eval('article time[datetime]', node => node.getAttribute('datetime')));
 
-    article.bodyBlockList = await getBodyBlockList(pageContent,
+    const tempBlockList = await getBodyBlockList(pageContent,
         'article div[class*="t-content__body"] > p',
         LANG);
+    article.bodyBlockList = tempBlockList.filter(block => {
+        return !(block.type === 'p' &&
+            (
+                block.fr.startsWith('>> À lire aussi')
+                ||
+                block.fr.startsWith('Avec AFP')
+            )
+        );
+    })
     article.abstract = await asyncSummarize(article, LANG);
 
     return article;

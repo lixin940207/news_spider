@@ -72,12 +72,14 @@ module.exports.goToArticlePageAndParse = async (browser, url) => {
             const timeText = dateHeader.split(' le ')[dateHeader.split(' le ').length - 1];
             if (timeText.includes(' à ')) {
                 date = new Date(moment(timeText.split(' à ')[0], 'DD MMMM YYYY', 'fr'));
-                date.setHours(Number(timeText.split(' à ')[1].split('h')[0]))
-                date.setMinutes(Number(timeText.split(' à ')[1].split('h')[1]))
+                date.setHours(Number(timeText.split(' à ')[1].split('h')[0]));
+                date.setMinutes(Number(timeText.split(' à ')[1].split('h')[1]));
             } else {
                 date = new Date(moment(timeText, 'DD MMMM YYYY', 'fr'));
             }
         }
+        article.headImageHref = article.bodyBlockList.filter(block => block.type === 'img')[0].src;
+        article.bodyBlockList.filter(block => block.src !== article.headImageHref);
         article.publishTime = date;
         article.abstract = await asyncSummarize(article, LANG);
         return article;

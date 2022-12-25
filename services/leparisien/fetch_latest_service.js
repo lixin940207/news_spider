@@ -6,7 +6,7 @@ const schedule = require("node-schedule");
 const URL = require('../../config/config').ORIGINAL_URLS.LeParisienURL;
 const logger = require('../../config/logger');
 const moment = require('moment');
-const {processStr} = require("../utils/util");
+const {processStr, ifSelectorExists} = require("../utils/util");
 const {asyncTranslate} = require("../nlp_utils/translations");
 const {NewsObject} = require("../utils/objects");
 const {goToArticlePageAndParse} = require("./common");
@@ -55,6 +55,9 @@ const parseNews = async (element, idx) => {
     news.ranking = idx;
     news.articleHref = 'https:' + await element.$eval('a', node => node.getAttribute('href'));
     if (news.articleHref.split('/')[3] === 'podcasts') {
+        return;
+    }
+    if (await ifSelectorExists(element, 'a span.abo')) { // skip news needs abonement
         return;
     }
     news.imageHref = URL + await element.$eval('img', node => node.getAttribute('src'));

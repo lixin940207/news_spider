@@ -63,9 +63,12 @@ const goToArticlePageAndParse = async (browser, url) => {
         article.publishTime = new Date(await mainElement.$eval('span[class*="fig-content-metas__pub-date"] time',
             node => node.getAttribute('datetime')));
     }
-    article.bodyBlockList = await getBodyBlockList(mainElement, 'p.fig-paragraph, ' +
+    const tempBlockList = await getBodyBlockList(mainElement, 'p.fig-paragraph, ' +
         'h2.fig-body-heading',
         LANG);
+    article.bodyBlockList = tempBlockList.filter(block => {
+        return !(block.type === 'p' && block.fr.startsWith('À VOIR AUSSI'));
+    })
     return article;
 }
 
