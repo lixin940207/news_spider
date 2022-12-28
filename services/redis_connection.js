@@ -9,6 +9,8 @@ if (process.env.ENV === 'PRODUCTION') {
             {
                 host: redis_host,
                 port: redis_port,
+                username: process.env.REDIS_USERNAME,
+                password: process.env.REDIS_PASSWORD,
             }
         ],
         {
