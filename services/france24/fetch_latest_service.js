@@ -64,6 +64,11 @@ const parseNews = async (element, idx) => {
     news.title = await asyncTranslate(oriTitle, LANG);
     news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
+    if (['amériques', 'asie-pacifique', 'afrique', 'moyen-orient'].includes(news.articleHref.split('/')[4])) {
+        news.categories.push('World');
+    } else {
+        if (news.categories.length === 0) news.categories.push('France');
+    }
     news.imageHref = await getImageHref(element, 'div.article__figure-wrapper img');
     news.isLive = false;
     news.newsType = NewsTypes.CardWithImage;

@@ -69,7 +69,7 @@ const parseNews = async (element, idx) => {
     news.newsType = NewsTypes.CardWithImage;
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
     news.publishTime = news.article.publishTime;
-    if (!news.imageHref && news.article.headImageHref) {
+    if (news.article.headImageHref) {
         news.imageHref = news.article.headImageHref;
     }
 

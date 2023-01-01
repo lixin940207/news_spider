@@ -39,23 +39,7 @@ async function pushToQueueAndWaitForKeywordExtractRes(q, lang) {
             return "";
         }
         const res = JSON.parse(response.Body.toString());
-        const words = []
-        let start = 0
-        let end = 0
-        for (let i = 0; i < res.length; i++) {
-            if (res[i]['entity'] === 'B-KEY') {
-                if (start !== end) {
-                    words.push(q.slice(start, end));
-                    start = res[i]['start'];
-                    end = res[i]['end'];
-                }
-            } else {
-                end = res[i]['end'];
-            }
-        }
-        if (start !== end) {
-            words.push(q.slice(start, end));
-        }
+        const words = res.map(i => i.word);
         await redis.set(key, JSON.stringify(words));
         await redis.expire(key, 9000);
         return words;

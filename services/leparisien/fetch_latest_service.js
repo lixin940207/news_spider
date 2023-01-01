@@ -63,6 +63,11 @@ const parseNews = async (element, idx) => {
     news.imageHref = URL + await element.$eval('img', node => node.getAttribute('src'));
     let oriTitle = processStr(await element.$eval('.story-headline', node => node.innerText));
     news.categories = determineCategory(oriTitle);
+    if (news.articleHref.split('/')[3] === 'international') {
+        news.categories.push('World');
+    } else {
+        news.categories.push('France');
+    }
     news.isLive = oriTitle.startsWith('DIRECT.');
     if (news.isLive) {
         oriTitle = oriTitle.slice(7,);

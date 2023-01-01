@@ -66,6 +66,12 @@ const parseNews = async (element, idx) => {
     }
     news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
+    if (news.articleHref.split('/')[3] === 'international') {
+        news.categories.push('World');
+    } else {
+        news.categories.push('France');
+    }
+
     news.isLive = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_live');
     news.isVideo = (await element.evaluate(node => node.getAttribute('class'))).includes('content_type_video');
     if (news.isLive && oriTitle.startsWith('EN DIRECT - ')) {

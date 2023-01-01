@@ -34,7 +34,9 @@ const crawl = async () => {
         allNewsResult.push(await parseNews(elementList[i], i));
     }
     logger.info('LeFigaro parsed all objects.')
-    await News.bulkUpsertNews(allNewsResult.flat().map(element => {
+    await News.bulkUpsertNews(allNewsResult.flat()
+        .filter(element => element !== undefined)
+        .map(element => {
         element.platform = 'LeFigaro';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
@@ -57,10 +59,16 @@ const parseNews = async (element, idx) => {
                     const oriTitle = await node.$eval('a', node => node.innerText);
                     const title = await asyncTranslate(oriTitle, LANG);
                     const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
+                    let categories;
+                    if (articleHref.split('/')[3] === 'international') {
+                        categories = 'World';
+                    } else {
+                        categories = 'France';
+                    }
                     return {
                         ranking: idx,
                         title,
-                        categories: determineCategory(oriTitle),
+                        categories: [categories, ...determineCategory(oriTitle)],
                         keywords: await asyncKeywordExtractor(title),
                         articleHref,
                         isLive: true,
@@ -98,10 +106,16 @@ const parseNews = async (element, idx) => {
                         const oriTitle = processStr(await node.$eval('a', node => node.innerText));
                         const title = await asyncTranslate(oriTitle, LANG);
                         const {liveNewsList, latestTime} = await parseLiveNews(browser, articleHref);
+                        let categories;
+                        if (articleHref.split('/')[3] === 'international') {
+                            categories = 'World';
+                        } else {
+                            categories = 'France';
+                        }
                         return {
                             ranking: idx,
                             title,
-                            categories: determineCategory(oriTitle),
+                            categories: [categories, ...determineCategory(oriTitle)],
                             keywords: await asyncKeywordExtractor(title),
                             articleHref,
                             isLive: true,
@@ -127,6 +141,9 @@ const parseNews = async (element, idx) => {
 }
 
 const parseEnsembleNews = async (element, idx, hasRelated) => {
+    if (element.$eval('a[class="fig-ensemble__first-article-link"] .fig-premium-mark')) {
+        if (!hasRelated) return;
+    }
     const news = new NewsObject();
     news.ranking = idx;
     news.newsType = NewsTypes.CardWithTitleWide;
@@ -141,6 +158,11 @@ const parseEnsembleNews = async (element, idx, hasRelated) => {
         news.newsType = NewsTypes.CardWithTitleIntro;
     }
     news.categories = determineCategory(oriTitle);
+    if (news.articleHref.split('/')[3] === 'international') {
+        news.categories.push('World');
+    } else {
+        news.categories.push('France');
+    }
     let hasImage = false;
     if ((await element.$$('img')).length > 0) {
         const imageDataSrc = (await element.$eval('img', node => node.getAttribute('srcset') || node.getAttribute('data-srcset'))).split(' ');
@@ -181,6 +203,9 @@ const parseEnsembleNews = async (element, idx, hasRelated) => {
 }
 
 const parseProfileOrLiveNews = async (element, idx, isLive) => {
+    if ((await element.$eval('a h2', node=>node.getAttribute('class'))).includes('fig-premium-mark')){
+        return;
+    }
     const news = new NewsObject();
     news.ranking = idx;
     news.isLive = isLive;
@@ -192,9 +217,13 @@ const parseProfileOrLiveNews = async (element, idx, isLive) => {
     const oriTitle = processStr(await element.$eval('[class*="fig-profile__headline"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
     news.keywords = await asyncKeywordExtractor(news.title);
-    news.categories = determineCategory(oriTitle);
     news.articleHref = await element.$eval('a.fig-profile__link', node => node.getAttribute('href'));
-    // objects.category = objects.articleHref.split('/')[3];
+    news.categories = determineCategory(oriTitle);
+    if (news.articleHref.split('/')[3] === 'international') {
+        news.categories.push('World');
+    } else {
+        news.categories.push('France');
+    }
     news.imageHref = await getImageHref(element);
     if (news.imageHref !== undefined) news.newsType = isLive ? NewsTypes.CardWithImageAndLive : NewsTypes.CardWithImage
     const oriSummary = processStr(await element.$eval('[class*="fig-profile__chapo"]', node => node.innerText));
@@ -220,7 +249,11 @@ const parseEnsembleLiveNews = async (element, idx) => {
     news.keywords = await asyncKeywordExtractor(news.title);
     news.categories = determineCategory(oriTitle);
     news.articleHref = await element.$eval('a[class="fig-ensemble__first-article-link"]', node => node.getAttribute('href'))
-    // objects.category = objects.articleHref.split('/')[3];
+    if (news.articleHref.split('/')[3] === 'international') {
+        news.categories.push('World');
+    } else {
+        news.categories.push('France');
+    }
     news.imageHref = await getImageHref(element);
     const oriSummary = processStr(await element.$eval('p[class*="fig-ensemble__chapo"]', node => node.innerText));
     news.summary = await asyncTranslate(oriSummary, LANG);

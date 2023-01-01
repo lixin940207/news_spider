@@ -40,7 +40,9 @@ const crawl = async () => {
     }
 
     logger.info('NYTimes parsing all objects finish.')
-    await News.bulkUpsertNews(newsList.map(element => {
+    await News.bulkUpsertNews(newsList
+        .filter(element => element !== undefined)
+        .map(element => {
         element.platform = 'NYTimes';
         element.displayOrder = element.ranking * 0.01 - current_ts;
         return element;
@@ -108,13 +110,15 @@ const parseSingleNews = async (browser, element, idx) => {
     if (news.articleHref === undefined) return undefined;
 
     const hrefSplit = news.articleHref.split('/');
-    news.region = hrefSplit[hrefSplit.length - 2];
     news.isLive = hrefSplit[3] === 'live';
 
     const oriTitle = await element.$eval('h2.indicate-hover, h3.indicate-hover', node => node.innerText);
     news.title = await asyncTranslate(oriTitle, LANG);
     news.keywords = await asyncKeywordExtractor(news.title);
-    news.categories = determineCategory(oriTitle);
+    news.categories = ['World', ...determineCategory(oriTitle)];
+    if (hrefSplit[6] === 'technology') {
+        news.categories.push('Tech');
+    }
     if (await ifSelectorExists(element, 'p.summary-class')) {
         const oriSummary = await element.$eval('p.summary-class', node => node.innerText);
         news.summary = await asyncTranslate(oriSummary, LANG);

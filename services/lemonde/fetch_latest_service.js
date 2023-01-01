@@ -54,6 +54,8 @@ const crawl = async () => {
 }
 
 const parseNews = async (element, idx) => {
+    const hasRelate = await ifSelectorExists(element, 'ul[class*="article__related"]');
+    if ((await ifSelectorExists(element, 'span.icon__premium')) && !hasRelate) return;
     const news = new NewsObject();
     news.ranking = idx;
     news.articleHref = await element.$eval('a', node => node.getAttribute('href'));
@@ -63,6 +65,11 @@ const parseNews = async (element, idx) => {
     const oriTitle = processStr(await element.$eval('.article__title', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
     news.categories = determineCategory(oriTitle);
+    if (news.articleHref.split('/')[3] === 'international') {
+        news.categories.push('World');
+    } else {
+        news.categories.push('France');
+    }
     news.newsType = NewsTypes.CardWithTitleWide;
     if (await ifSelectorExists(element, '.article__desc')) {
         const oriSummary = processStr(await element.$eval('.article__desc', node => node.innerText));
@@ -95,7 +102,7 @@ const parseNews = async (element, idx) => {
             news.imageHref = news.article.mainImageHref;
         }
     }
-    if (await ifSelectorExists(element, 'ul[class*="article__related"]')) {
+    if (hasRelate) {
         const relatedElementList = await element.$$('ul[class*="article__related"] li a');
         if (news.isLive) {
             let liveNewsList = await Promise.all(relatedElementList.map(async element => {
@@ -180,9 +187,6 @@ const parseNews = async (element, idx) => {
             liveNewsList = liveNewsList.filter(i => i !== undefined);
             return [news].concat(liveNewsList);
         }
-    }
-    else {
-        if (await ifSelectorExists(element, 'span.icon__premium')) return;
     }
     logger.info("parsed news " + news.articleHref, {platform: "LeMonde"});
     return news;

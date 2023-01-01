@@ -128,7 +128,7 @@ const getCommonPart = async (element) => {
     const oriTitle = processStr(await element.$eval('[class*="nw-o-link-split__text"]', node => node.innerText));
     news.title = await asyncTranslate(oriTitle, LANG);
     news.keywords = await asyncKeywordExtractor(news.title);
-    news.categories = determineCategory(oriTitle);
+    news.categories = ['World', ...determineCategory(oriTitle)];
     if ((await element.$$('p[class*="gs-c-promo-summary"]')).length > 0) {
         const oriSummary = processStr(await element.$eval('p[class*="gs-c-promo-summary"]', node => node.innerText));
         news.summary = await asyncTranslate(oriSummary, LANG);
