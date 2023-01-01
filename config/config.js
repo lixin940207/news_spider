@@ -33,9 +33,10 @@ module.exports = {
         TechCrunch: 'en',
         WIRED: 'en',
     },
-    REDIS_NLP_TRANSLATE_QUEUE_KEY: "nlp_translate_queue",
-    REDIS_NLP_SUMMARIZE_QUEUE_KEY: "nlp_summarize_queue",
-    REDIS_NLP_KEYWORD_EXTRACT_QUEUE_KEY: "nlp_keyword_extract_queue",
     ENABLE_TRANSLATE: true,
     ENABLE_SUMMARIZE: true,
+    AWS_REGION: 'eu-west-3',
+    TRANSLATE_MAX_CONCURRENCY: 20,
+    SUMMARIZE_MAX_LENGTH: 5000,
+    SUMMARIZE_REDUCE_LENGTH: 500,
 }
