@@ -141,7 +141,7 @@ const parseNews = async (element, idx) => {
 }
 
 const parseEnsembleNews = async (element, idx, hasRelated) => {
-    if (element.$eval('a[class="fig-ensemble__first-article-link"] .fig-premium-mark')) {
+    if (await ifSelectorExists(element, 'a[class="fig-ensemble__first-article-link"] .fig-premium-mark')) {
         if (!hasRelated) return;
     }
     const news = new NewsObject();
@@ -273,7 +273,7 @@ if (process.env.ENV === 'PRODUCTION') {
     crawl()
         .then(() => process.exit())
         .catch(r => {
-                logger.error(r);
+                logger.error(r.stack);
                 process.exit(1);
             }
         );
