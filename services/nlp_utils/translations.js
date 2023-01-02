@@ -31,16 +31,22 @@ async function asyncTranslate(text, ori) {
     return i;
 }
 
-async function invokeSageMaker(q, i, lang) {
+async function invokeSageMaker(q, lang, batch_size) {
     try {
-        return await sagemakerRuntime.invokeEndpoint({
-            EndpointName: process.env['TRANSLATION_'+lang.toUpperCase()+'_ENDPOINT']
-                || 'translation-' + lang.replace('_', '-') + '-endpoint',
-            Body: JSON.stringify({
-                inputs: q.slice(i ,Math.min(q.length, i+TRANSLATE_MAX_CONCURRENCY))
-            }),
-            ContentType: "application/json",
-        }).promise();
+        let parsedList = [];
+        for (let i = 0; i < q.length; i += batch_size) {
+            let response = await sagemakerRuntime.invokeEndpoint({
+                EndpointName: process.env['TRANSLATION_'+lang.toUpperCase()+'_ENDPOINT']
+                    || 'translation-' + lang.replace('_', '-') + '-endpoint',
+                Body: JSON.stringify({
+                    inputs: q.slice(i ,Math.min(q.length, i+batch_size))
+                }),
+                ContentType: "application/json",
+            }).promise();
+            parsedList.push(...JSON.parse(response.Body.toString())
+                .map(i => i['translation_text']));
+        }
+        return parsedList;
     } catch (e) {
         return e;
     }
@@ -62,18 +68,17 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
         if (isStr) {
             q = [q];
         }
-        for (let i = 0; i < q.length; i += TRANSLATE_MAX_CONCURRENCY) {
-            let response = await invokeSageMaker(q, i, lang);
-            if (response instanceof Error) {
-                logger.error('sagemaker translate error, try again', q, lang);
-                response = await invokeSageMaker(q, i, lang);
-                if (response instanceof Error) {
-                    logger.error('sagemaker translate error again, return null', q, lang);
-                    return "";
-                }
-            }
-            parsedList.push(...JSON.parse(response.Body.toString())
-                .map( i => i['translation_text']));
+        let batch_size = TRANSLATE_MAX_CONCURRENCY;
+        let response = await invokeSageMaker(q, lang, batch_size);
+        while (batch_size > 0 && response instanceof Error) {
+            logger.error('sagemaker translate batch_size too big error, reduce the size, try again', q, lang);
+            response = await invokeSageMaker(q, lang, batch_size);
+            batch_size -= 5;
+        }
+
+        if (response instanceof Error) {
+            logger.debug('sagemaker translate still error, return null', q, lang);
+            return "";
         }
 
         let res = parsedList;
