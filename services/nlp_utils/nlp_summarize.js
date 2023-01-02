@@ -100,7 +100,7 @@ async function pushArticleToNLPSummarizeQueue(article, lang) {
                 }
             }
             logger.debug('sagemaker summarize out of range error solved',
-                {lang, response});
+                {lang, response: response.Body.toString()});
         }
 
         const res = JSON.parse(response.Body.toString())[0]['summary_text'];

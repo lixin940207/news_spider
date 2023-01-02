@@ -63,20 +63,19 @@ async function pushToQueueAndWaitForTranslateRes(q, lang) {
             return existingRes;
         }
         logger.debug('translating', {q, lang});
-        let parsedList = [];
 
         if (isStr) {
             q = [q];
         }
         let batch_size = TRANSLATE_MAX_CONCURRENCY;
-        let response = await invokeSageMaker(q, lang, batch_size);
-        while (batch_size > 0 && response instanceof Error) {
+        let parsedList = await invokeSageMaker(q, lang, batch_size);
+        while (batch_size > 0 && parsedList instanceof Error) {
             logger.error('sagemaker translate batch_size too big error, reduce the size, try again', q, lang);
-            response = await invokeSageMaker(q, lang, batch_size);
+            parsedList = await invokeSageMaker(q, lang, batch_size);
             batch_size -= 5;
         }
 
-        if (response instanceof Error) {
+        if (parsedList instanceof Error) {
             logger.debug('sagemaker translate still error, return null', q, lang);
             return "";
         }
