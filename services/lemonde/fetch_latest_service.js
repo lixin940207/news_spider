@@ -37,11 +37,17 @@ const crawl = async () => {
         try {
             tmp = await parseNews(elementList[i], i);
         } catch (e) {
-            tmp = await parseNews(elementList[i], i);
+            logger.error(e);
+            try {
+                tmp = await parseNews(elementList[i], i);
+            } catch (e) {
+                logger.error(e);
+                logger.log('skipped news');
+            }
         }
         allNewsResult.push(tmp);
     }
-    allNewsResult = allNewsResult.flat().filter(news => news !== undefined);
+    allNewsResult = allNewsResult.flat().filter(news => news !== undefined && !isNaN(news.publishTime));
     allNewsResult = allNewsResult.map(element => {
         element.platform = 'LeMonde';
         element.displayOrder = element.ranking * 0.01 - current_ts;
