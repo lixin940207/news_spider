@@ -184,7 +184,7 @@ const parseLiveNews = async (browser, url) => {
             liveHref: url,
             liveTime: new Date(await element.$eval('time', node => node.getAttribute('datetime'))),
             liveContent: {
-                bodyBlockList
+                bodyBlockList,
             }
         };
     }));

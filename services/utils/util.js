@@ -12,7 +12,7 @@ function determineCategory(str) {
     const lowerStr = str.toString().toLowerCase();
     const category_keys = Object.keys(categories);
     for (let i = 0; i < category_keys.length; i++) {
-        if (categories[category_keys[i]].filter(x => lowerStr.includes(x)).length > 0) {
+        if (categories[category_keys[i]].filter(x => lowerStr.split(/\W+/).includes(x)).length > 0) {
             res.push(category_keys[i]);
         }
     }

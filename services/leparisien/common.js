@@ -155,7 +155,7 @@ const parseLiveNews = async (browser, url) => {
             liveTitle: await asyncTranslate(liveTitle, LANG),
             liveTime: liveElementDateTemp[i] === undefined ? new Date() : liveElementDateTemp[i],
             liveContent: {
-                bodyBlockList: await asyncTranslate(summary, LANG)
+                bodyBlockList: summary,
             }
         }
     }))
