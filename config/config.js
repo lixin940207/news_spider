@@ -19,8 +19,13 @@ module.exports = {
     },
     TECHNOLOGY: {
         BBCURL: 'https://www.bbc.com/news/technology',
+        NYTimesURL: 'https://www.nytimes.com/section/technology',
         TechCrunchURL: 'https://techcrunch.com',
         WIRED: 'https://www.wired.com'
+    },
+    FINANCE: {
+        BBCURL: 'https://www.bbc.com/news/business',
+        NYTimesURL: 'https://www.nytimes.com/section/business/economy',
     },
     LANGUAGE: {
         BBC: 'en',
