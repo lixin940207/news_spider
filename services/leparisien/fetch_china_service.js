@@ -67,6 +67,9 @@ const parseNews = async (element, idx) => {
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
+    if (news.imageHref.includes('lazy-loading')) {
+        news.imageHref = news.articleHref.headImageHref;
+    }
     news.publishTime = news.article.publishTime;
     logger.info("parsed news " + news.articleHref, {platform: "LeParisien China"});
     return news;

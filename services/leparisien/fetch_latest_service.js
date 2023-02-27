@@ -88,6 +88,9 @@ const parseNews = async (element, idx) => {
     } else {
         news.article = await goToArticlePageAndParse(browser, news.articleHref);
         news.publishTime = news.article.publishTime
+        if (news.imageHref.includes('lazy-loading')) {
+            news.imageHref = news.articleHref.headImageHref;
+        }
     }
     logger.info("parsed news " + news.articleHref, {platform: "LeParisien"});
     return news;
