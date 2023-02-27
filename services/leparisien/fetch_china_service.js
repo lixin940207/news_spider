@@ -1,6 +1,7 @@
 require('../mongodb_connection');
 const News = require('../../models/news')
 const puppeteer = require('puppeteer');
+const { scrollPageToBottom } = require('puppeteer-autoscroll-down')
 const NewsTypes = require("../../models/news_type_enum");
 const schedule = require("node-schedule");
 const URL = require('../../config/config').CHINA_NEWS_URLS.LeParisienURL;
@@ -28,6 +29,12 @@ const crawl = async () => {
         timeout: 0,
         waitUntil: "load",
     });
+    // Scroll to the very top of the page
+    await page.evaluate(_ => {
+        window.scrollTo(0, 0);
+    });
+    await scrollPageToBottom(page);
+
     logger.info('LeParisien china got to the page.')
     await page.waitForSelector('#fusion-app', {timeout: 0})
     logger.info('LeParisien china loaded')
@@ -67,9 +74,6 @@ const parseNews = async (element, idx) => {
         news.newsType = NewsTypes.CardWithImageAndSummary;
     }
     news.article = await goToArticlePageAndParse(browser, news.articleHref);
-    if (news.imageHref.includes('lazy-loading')) {
-        news.imageHref = news.articleHref.headImageHref;
-    }
     news.publishTime = news.article.publishTime;
     logger.info("parsed news " + news.articleHref, {platform: "LeParisien China"});
     return news;
